@@ -1,4 +1,5 @@
 <?php
+ob_start();
 // Simple autoloader for our MVC architecture
 spl_autoload_register(function ($className) {
     if (file_exists('../app/controllers/' . $className . '.php')) {
