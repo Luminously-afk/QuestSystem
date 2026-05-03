@@ -55,7 +55,7 @@
                         <td><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($redemption['requested_at']))); ?></td>
                         <td class="text-end">
                             <?php if ($redemption['status'] === 'pending'): ?>
-                                <form method="post" action="/quest/public/admin/reviewRedemption" class="d-flex flex-column gap-2">
+                                <form method="post" action="<?php echo BASE_URL; ?>/admin/reviewRedemption" class="d-flex flex-column gap-2">
                                     <input type="hidden" name="redemption_id" value="<?php echo $redemption['redemption_id']; ?>">
                                     <select name="status" class="form-select form-select-sm">
                                         <option value="approved">Approve</option>

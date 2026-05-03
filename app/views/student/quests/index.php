@@ -42,7 +42,7 @@
                         </td>
                         <td class="text-end">
                             <?php if ($submissionStatus === null || $isRejected): ?>
-                                <a class="btn btn-sm btn-primary" href="/quest/public/student/submit/<?php echo $quest['quest_id']; ?>">
+                                <a class="btn btn-sm btn-primary" href="<?php echo BASE_URL; ?>/student/submit/<?php echo $quest['quest_id']; ?>">
                                     <?php echo $isRejected ? 'Resubmit' : 'Submit Proof'; ?>
                                 </a>
                             <?php else: ?>

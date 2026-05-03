@@ -10,7 +10,7 @@
     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<form method="post" action="/quest/public/auth/changePassword">
+<form method="post" action="<?php echo BASE_URL; ?>/auth/changePassword">
     <div class="mb-3">
         <label class="form-label">New Password</label>
         <input type="password" name="new_password" class="form-control" required>
@@ -22,7 +22,7 @@
     </div>
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">Update Password</button>
-        <a class="btn btn-secondary" href="/quest/public/auth/logout">Logout</a>
+        <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>/auth/logout">Logout</a>
     </div>
 </form>
 

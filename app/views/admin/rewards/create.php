@@ -6,7 +6,7 @@
     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<form method="post" action="/quest/public/admin/createReward">
+<form method="post" action="<?php echo BASE_URL; ?>/admin/createReward">
     <div class="mb-3">
         <label class="form-label">Reward Name</label>
         <input type="text" name="reward_name" class="form-control" value="<?php echo htmlspecialchars($old['reward_name'] ?? ''); ?>" required>
@@ -32,7 +32,7 @@
 
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success">Save Reward</button>
-        <a class="btn btn-secondary" href="/quest/public/admin/rewards">Cancel</a>
+        <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>/admin/rewards">Cancel</a>
     </div>
 </form>
 

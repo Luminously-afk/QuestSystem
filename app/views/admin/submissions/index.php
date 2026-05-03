@@ -59,7 +59,7 @@
                         <td><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($submission['submitted_at']))); ?></td>
                         <td class="text-end">
                             <?php if ($submission['status'] === 'pending'): ?>
-                                <form method="post" action="/quest/public/admin/reviewSubmission" class="d-flex flex-column gap-2">
+                                <form method="post" action="<?php echo BASE_URL; ?>/admin/reviewSubmission" class="d-flex flex-column gap-2">
                                     <input type="hidden" name="submission_id" value="<?php echo $submission['submission_id']; ?>">
                                     <select name="status" class="form-select form-select-sm">
                                         <option value="approved">Approve</option>

@@ -19,14 +19,14 @@
     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<form method="post" action="/quest/public/student/submit/<?php echo $quest['quest_id']; ?>">
+<form method="post" action="<?php echo BASE_URL; ?>/student/submit/<?php echo $quest['quest_id']; ?>">
     <div class="mb-3">
         <label class="form-label">Proof Text</label>
         <textarea name="proof_text" class="form-control" rows="5" required></textarea>
     </div>
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success">Submit Proof</button>
-        <a class="btn btn-secondary" href="/quest/public/student/quests">Cancel</a>
+        <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>/student/quests">Cancel</a>
     </div>
 </form>
 

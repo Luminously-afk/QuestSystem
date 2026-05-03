@@ -17,7 +17,7 @@
     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<form method="post" action="/quest/public/admin/createStudent">
+<form method="post" action="<?php echo BASE_URL; ?>/admin/createStudent">
     <div class="mb-3">
         <label class="form-label">Full Name</label>
         <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($old['full_name'] ?? ''); ?>" required>
@@ -36,7 +36,7 @@
 
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success">Create Account</button>
-        <a class="btn btn-secondary" href="/quest/public/admin/students">Back</a>
+        <a class="btn btn-secondary" href="<?php echo BASE_URL; ?>/admin/students">Back</a>
     </div>
 </form>
 

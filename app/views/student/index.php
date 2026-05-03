@@ -23,11 +23,11 @@
 </div>
 
 <div class="list-group">
-    <a class="list-group-item list-group-item-action" href="/quest/public/student/quests">View Active Quests</a>
-    <a class="list-group-item list-group-item-action" href="/quest/public/student/submissions">Track Submissions</a>
-    <a class="list-group-item list-group-item-action" href="/quest/public/student/rewards">View Rewards</a>
-    <a class="list-group-item list-group-item-action" href="/quest/public/student/redemptions">My Redemptions</a>
-    <a class="list-group-item list-group-item-action" href="/quest/public/student/leaderboard">Leaderboard</a>
+    <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/student/quests">View Active Quests</a>
+    <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/student/submissions">Track Submissions</a>
+    <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/student/rewards">View Rewards</a>
+    <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/student/redemptions">My Redemptions</a>
+    <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/student/leaderboard">Leaderboard</a>
 </div>
 
 <?php require_once '../app/views/layouts/footer.php'; ?>

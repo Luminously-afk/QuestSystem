@@ -15,7 +15,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div></div>
-    <a class="btn btn-primary" href="/quest/public/admin/createQuest">Add Quest</a>
+    <a class="btn btn-primary" href="<?php echo BASE_URL; ?>/admin/createQuest">Add Quest</a>
 </div>
 
 <?php if (empty($quests)): ?>
@@ -46,8 +46,8 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-primary" href="/quest/public/admin/editQuest/<?php echo $quest['quest_id']; ?>">Edit</a>
-                            <form method="post" action="/quest/public/admin/deleteQuest" class="d-inline" onsubmit="return confirm('Delete this quest?');">
+                            <a class="btn btn-sm btn-outline-primary" href="<?php echo BASE_URL; ?>/admin/editQuest/<?php echo $quest['quest_id']; ?>">Edit</a>
+                            <form method="post" action="<?php echo BASE_URL; ?>/admin/deleteQuest" class="d-inline" onsubmit="return confirm('Delete this quest?');">
                                 <input type="hidden" name="quest_id" value="<?php echo $quest['quest_id']; ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>

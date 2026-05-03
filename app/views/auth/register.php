@@ -10,7 +10,7 @@
                     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
 
-                <form method="post" action="/quest/public/auth/register">
+                <form method="post" action="<?php echo BASE_URL; ?>/auth/register">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
                         <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($old['full_name'] ?? ''); ?>" required>
@@ -30,7 +30,7 @@
                     <button type="submit" class="btn btn-success w-100">Create Account</button>
                 </form>
 
-                <p class="mt-3 mb-0">Already have an account? <a href="/quest/public/auth/login">Login here</a></p>
+                <p class="mt-3 mb-0">Already have an account? <a href="<?php echo BASE_URL; ?>/auth/login">Login here</a></p>
             </div>
         </div>
     </div>

@@ -11,7 +11,10 @@ class Controller {
     }
 
     public function redirect($url) {
-        header("Location: /quest/public/" . $url);
+        $base = defined('BASE_URL') ? BASE_URL : '';
+        $base = rtrim($base, '/');
+        $path = '/' . ltrim($url, '/');
+        header("Location: " . $base . $path);
         exit();
     }
 }

@@ -18,7 +18,7 @@
                     <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
 
-                <form method="post" action="/quest/public/auth/login">
+                <form method="post" action="<?php echo BASE_URL; ?>/auth/login">
                     <div class="mb-3">
                         <label class="form-label">Email or Student ID</label>
                         <input type="text" name="identifier" class="form-control" value="<?php echo htmlspecialchars($old['identifier'] ?? ''); ?>" required>

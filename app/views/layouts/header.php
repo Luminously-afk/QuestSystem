@@ -20,16 +20,16 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand brand" href="/quest/public/">IT Quest System</a>
+        <a class="navbar-brand brand" href="<?php echo BASE_URL; ?>/">IT Quest System</a>
         <div class="d-flex">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <span class="navbar-text text-white me-3">
                     <?php echo htmlspecialchars($_SESSION['full_name']); ?> (<?php echo htmlspecialchars($_SESSION['role']); ?>)
                 </span>
-                <a class="btn btn-outline-light me-2" href="/quest/public/auth/changePassword">Change Password</a>
-                <a class="btn btn-outline-light" href="/quest/public/auth/logout">Logout</a>
+                <a class="btn btn-outline-light me-2" href="<?php echo BASE_URL; ?>/auth/changePassword">Change Password</a>
+                <a class="btn btn-outline-light" href="<?php echo BASE_URL; ?>/auth/logout">Logout</a>
             <?php else: ?>
-                <a class="btn btn-outline-light me-2" href="/quest/public/auth/login">Login</a>
+                <a class="btn btn-outline-light me-2" href="<?php echo BASE_URL; ?>/auth/login">Login</a>
             <?php endif; ?>
         </div>
     </div>

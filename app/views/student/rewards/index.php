@@ -63,7 +63,7 @@
                         </td>
                         <td class="text-end">
                             <?php if ($canRequest): ?>
-                                <form method="post" action="/quest/public/student/requestReward/<?php echo $reward['reward_id']; ?>">
+                                <form method="post" action="<?php echo BASE_URL; ?>/student/requestReward/<?php echo $reward['reward_id']; ?>">
                                     <button type="submit" class="btn btn-sm btn-primary">Request</button>
                                 </form>
                             <?php elseif ($redemptionStatus === 'pending'): ?>

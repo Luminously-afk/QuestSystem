@@ -15,7 +15,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div></div>
-    <a class="btn btn-primary" href="/quest/public/admin/createReward">Add Reward</a>
+    <a class="btn btn-primary" href="<?php echo BASE_URL; ?>/admin/createReward">Add Reward</a>
 </div>
 
 <?php if (empty($rewards)): ?>
@@ -45,8 +45,8 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-primary" href="/quest/public/admin/editReward/<?php echo $reward['reward_id']; ?>">Edit</a>
-                            <form method="post" action="/quest/public/admin/deleteReward" class="d-inline" onsubmit="return confirm('Delete this reward?');">
+                            <a class="btn btn-sm btn-outline-primary" href="<?php echo BASE_URL; ?>/admin/editReward/<?php echo $reward['reward_id']; ?>">Edit</a>
+                            <form method="post" action="<?php echo BASE_URL; ?>/admin/deleteReward" class="d-inline" onsubmit="return confirm('Delete this reward?');">
                                 <input type="hidden" name="reward_id" value="<?php echo $reward['reward_id']; ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>

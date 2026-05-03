@@ -12,5 +12,14 @@ spl_autoload_register(function ($className) {
 
 session_start();
 
+if (!defined('BASE_URL')) {
+    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+    $baseUrl = rtrim($scriptDir, '/');
+    if ($baseUrl === '/') {
+        $baseUrl = '';
+    }
+    define('BASE_URL', $baseUrl);
+}
+
 $app = new App();
 ?>

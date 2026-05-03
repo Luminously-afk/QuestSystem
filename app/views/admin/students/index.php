@@ -5,7 +5,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div></div>
-    <a class="btn btn-primary" href="/quest/public/admin/createStudent">Create Student Account</a>
+    <a class="btn btn-primary" href="<?php echo BASE_URL; ?>/admin/createStudent">Create Student Account</a>
 </div>
 
 <?php if (empty($students)): ?>
