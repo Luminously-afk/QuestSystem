@@ -11,8 +11,6 @@ spl_autoload_register(function ($className) {
     }
 });
 
-session_start();
-
 if (!defined('BASE_URL')) {
     $envBase = getenv('APP_BASE_URL');
     if ($envBase !== false && $envBase !== '') {
@@ -26,6 +24,24 @@ if (!defined('BASE_URL')) {
     }
     define('BASE_URL', $baseUrl);
 }
+
+$cookiePath = getenv('SESSION_COOKIE_PATH');
+if ($cookiePath === false || $cookiePath === '') {
+    $cookiePath = BASE_URL !== '' ? BASE_URL . '/' : '/';
+}
+$forwardProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || strtolower($forwardProto) === 'https';
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => $cookiePath,
+    'secure' => $isHttps,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+
+session_start();
 
 $app = new App();
 ?>
