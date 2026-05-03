@@ -1,0 +1,5 @@
+# Ignore local scripts and secrets
+scripts/
+
+# Ignore local environment files
+.env
