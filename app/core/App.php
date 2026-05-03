@@ -29,7 +29,24 @@ class App {
 
     public function parseUrl() {
         if (isset($_GET['url'])) {
-            return explode('/', filter_var(rtrim($_GET['url'], '/'), FILTER_SANITIZE_URL));
+            $url = filter_var(rtrim($_GET['url'], '/'), FILTER_SANITIZE_URL);
+            if (defined('BASE_URL') && BASE_URL !== '') {
+                $base = trim(BASE_URL, '/');
+                if ($base !== '') {
+                    $basePrefix = $base . '/';
+                    if (stripos($url, $basePrefix) === 0) {
+                        $url = substr($url, strlen($basePrefix));
+                    } elseif (strcasecmp($url, $base) === 0) {
+                        $url = '';
+                    }
+                }
+            }
+
+            if ($url === '') {
+                return false;
+            }
+
+            return explode('/', $url);
         }
         return false;
     }

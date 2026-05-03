@@ -13,10 +13,15 @@ spl_autoload_register(function ($className) {
 session_start();
 
 if (!defined('BASE_URL')) {
-    $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
-    $baseUrl = rtrim($scriptDir, '/');
-    if ($baseUrl === '/') {
-        $baseUrl = '';
+    $envBase = getenv('APP_BASE_URL');
+    if ($envBase !== false && $envBase !== '') {
+        $baseUrl = '/' . trim($envBase, '/');
+    } else {
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+        $baseUrl = rtrim($scriptDir, '/');
+        if ($baseUrl === '/') {
+            $baseUrl = '';
+        }
     }
     define('BASE_URL', $baseUrl);
 }
