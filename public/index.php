@@ -25,21 +25,39 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', $baseUrl);
 }
 
+$sessionPath = getenv('SESSION_SAVE_PATH');
+if ($sessionPath === false || $sessionPath === '') {
+    $sessionPath = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
+        . DIRECTORY_SEPARATOR
+        . 'itquest_sessions';
+}
+if (!is_dir($sessionPath)) {
+    @mkdir($sessionPath, 0755, true);
+}
+if (is_dir($sessionPath) && is_writable($sessionPath)) {
+    session_save_path($sessionPath);
+}
+
 $cookiePath = getenv('SESSION_COOKIE_PATH');
 if ($cookiePath === false || $cookiePath === '') {
     $cookiePath = BASE_URL !== '' ? BASE_URL . '/' : '/';
 }
+$cookieDomain = getenv('SESSION_COOKIE_DOMAIN');
 $forwardProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || strtolower($forwardProto) === 'https';
 
-session_set_cookie_params([
+$cookieParams = [
     'lifetime' => 0,
     'path' => $cookiePath,
     'secure' => $isHttps,
     'httponly' => true,
     'samesite' => 'Lax'
-]);
+];
+if ($cookieDomain !== false && $cookieDomain !== '') {
+    $cookieParams['domain'] = $cookieDomain;
+}
+session_set_cookie_params($cookieParams);
 
 session_start();
 
