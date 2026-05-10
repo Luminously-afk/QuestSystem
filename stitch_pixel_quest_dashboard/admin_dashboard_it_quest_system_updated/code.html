@@ -1,0 +1,447 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Lexend:wght@400;700;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .pixel-border {
+            box-shadow: 4px 0 0 0 #000, -4px 0 0 0 #000, 0 4px 0 0 #000, 0 -4px 0 0 #000;
+        }
+        body {
+            background-color: #f9f9f9;
+            image-rendering: pixelated;
+        }
+        .pixel-menu-item {
+            transition: all 0.1s;
+        }
+        .pixel-menu-item:hover {
+            background-color: #ffd54f;
+            transform: translate(2px, 2px);
+        }
+        .pixel-menu-item:active {
+            transform: translate(4px, 4px);
+        }
+        .pixel-divider {
+            height: 1px;
+            background-color: #e2e2e2;
+            width: 100%;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#5f5e5e",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#88da73",
+                        "primary-fixed-dim": "#ebc23e",
+                        "on-surface": "#1a1c1c",
+                        "secondary-container": "#e2dfde",
+                        "on-tertiary-container": "#1e6d12",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-surface-variant": "#4d4634",
+                        "on-secondary-fixed-variant": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-container": "#ffd54f",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#a3f78c",
+                        "primary": "#735c00",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#735c00",
+                        "surface-container-high": "#e8e8e8",
+                        "on-primary-fixed": "#241a00",
+                        "background": "#f9f9f9",
+                        "outline-variant": "#d0c6ae",
+                        "outline": "#7f7662",
+                        "on-primary-container": "#735c00",
+                        "on-background": "#1a1c1c",
+                        "tertiary-container": "#9aed83",
+                        "surface-container-low": "#f4f3f3",
+                        "surface": "#f9f9f9",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "inverse-surface": "#2f3131",
+                        "secondary-fixed": "#e5e2e1",
+                        "inverse-primary": "#ebc23e",
+                        "surface-dim": "#dadada",
+                        "on-primary-fixed-variant": "#574500",
+                        "tertiary": "#1e6d12",
+                        "surface-bright": "#f9f9f9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#eeeeee",
+                        "primary-fixed": "#ffe087",
+                        "on-tertiary-fixed": "#012200",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#055300",
+                        "on-secondary-container": "#636262",
+                        "inverse-on-surface": "#f1f1f1"
+                    },
+                    "fontFamily": {
+                        "h3": ["Press Start 2P"],
+                        "body-md": ["Lexend"],
+                        "body-lg": ["Lexend"],
+                        "label-pixel": ["Press Start 2P"],
+                        "button-text": ["Press Start 2P"],
+                        "h1": ["Press Start 2P"],
+                        "h2": ["Press Start 2P"]
+                    },
+                    "fontSize": {
+                        "h3": ["12px", {"lineHeight": "1.4", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "label-pixel": ["10px", {"lineHeight": "1", "letterSpacing": "1px", "fontWeight": "400"}],
+                        "button-text": ["12px", {"lineHeight": "1", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "h1": ["24px", {"lineHeight": "1.5", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "h2": ["18px", {"lineHeight": "1.4", "letterSpacing": "0px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md">
+<!-- Confirmation Dialog (Hidden by default) -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 hidden" id="delete-confirm">
+<div class="bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-sm w-full">
+<h2 class="font-h1 text-error mb-6 text-center">ARE YOU SURE?</h2>
+<p class="font-mono text-sm text-center mb-8 uppercase font-bold text-black">PERMANENT DELETION DETECTED. THIS ACTION CANNOT BE UNDONE.</p>
+<div class="flex gap-4">
+<button class="flex-1 bg-zinc-200 border-2 border-black p-4 font-button-text hover:bg-zinc-300 active:translate-y-1" onclick="document.getElementById('delete-confirm').classList.add('hidden')">CANCEL</button>
+<button class="flex-1 bg-error border-2 border-black p-4 font-button-text text-white hover:opacity-90 active:translate-y-1" onclick="document.getElementById('delete-confirm').classList.add('hidden')">DELETE</button>
+</div>
+</div>
+</div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-[#FFD54F] dark:bg-[#FFD54F] border-b-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-black text-3xl">videogame_asset</span>
+<h1 class="text-2xl font-black text-black tracking-widest uppercase font-mono">IT QUEST</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 border-2 border-black bg-white flex items-center justify-center overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<img alt="Admin Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGkhtVM73JlzePUwHBU7UytEz5-TkAdS4SwqACoBrMv3Ta6Ddt231GJ5bh0mcEj-eQYTkjUTgF2VuaW3vXbJ39R16nydi1hxgRq_jrZVDP9hbgfi3oCSFw10aySTsmpr2NQVHv-4KOZXXGRjQH3V04Z4zBsFyIbiRVZPuO0np7uORHuZa6Ts0fvxumGuJkATgVUzDhoiMyTlo2Y7y6EExmSdYDwzoQVsqI9ohHRVJ7jgXjG6Ito09Ii4EgMbTujDw5cu847YcIwwc">
+</div>
+<span class="font-mono font-black text-black text-sm uppercase">ADMIN_ROOT</span>
+</div>
+<div class="w-1 h-8 bg-black/20 mx-2"></div>
+<button class="flex items-center gap-2 bg-white text-black px-4 py-2 border-4 border-black font-button-text hover:bg-zinc-100 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-sm font-bold">logout</span>
+<span class="font-black">LOGOUT</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- Navigation Drawer -->
+<aside class="w-64 flex flex-col border-r-4 border-black bg-white dark:bg-zinc-900 sticky top-0 self-stretch" style="top: 76px; height: calc(100vh - 76px);">
+<div class="p-6 border-b-2 border-black">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 border-2 border-black bg-[#FFD54F] flex items-center justify-center">
+<span class="material-symbols-outlined text-black" style="font-variation-settings: &quot;FILL&quot; 1;">shield</span>
+</div>
+<div>
+<p class="font-mono font-bold uppercase text-black text-sm">PLAYER_01</p>
+<p class="text-xs text-zinc-500 font-mono">LVL 15 ARCHITECT</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 py-4 space-y-2">
+<a class="flex items-center gap-4 p-4 bg-[#FFD54F] text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-mono font-bold uppercase mx-2" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="">DASHBOARD</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-zinc-500 border-2 border-transparent font-mono font-bold uppercase hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors mx-2" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="">SETTINGS</span>
+</a>
+</nav>
+<div class="p-4 border-t-2 border-black">
+<p class="text-[8px] font-mono mt-1 text-center">SYSTEM_UPTIME: 99.9%</p>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 bg-surface">
+<!-- Breadcrumbs -->
+<div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
+<span class="">ROOT</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-black">DASHBOARD</span>
+</div>
+<!-- Dashboard Stats Bento Grid (Top Wide Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex justify-between items-start mb-4">
+<span class="font-h3 font-black text-black uppercase">TOTAL QUESTS</span>
+<span class="material-symbols-outlined text-primary text-3xl">swords</span>
+</div>
+<div class="text-4xl font-h1 font-black text-black mb-2">1,248</div>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="font-mono text-xs">+12% THIS WEEK</span>
+</div>
+</div>
+<div class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex justify-between items-start mb-4">
+<span class="font-h3 font-black text-black uppercase">ACTIVE STUDENTS</span>
+<span class="material-symbols-outlined text-[#1e6d12] text-3xl">groups</span>
+</div>
+<div class="text-4xl font-h1 font-black text-black mb-2">500</div>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-sm">circle</span>
+<span class="font-mono text-xs">310 ONLINE</span>
+</div>
+</div>
+<div class="bg-[#ffd54f] border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex justify-between items-start mb-4">
+<span class="font-h3 font-black text-black uppercase">PENDING APPROVAL/S</span>
+<span class="material-symbols-outlined text-black text-3xl">pending_actions</span>
+</div>
+<div class="text-4xl font-h1 font-black text-black mb-2">32</div>
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-sm">priority_high</span>
+<span class="font-mono text-xs">8 URGENT</span>
+</div>
+</div>
+</div>
+<!-- Management Panels & Logs Area -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<!-- Recent Quest Logs (Large Left) -->
+<div class="lg:col-span-2 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+<div class="border-b-4 border-black p-4 flex justify-between items-center bg-black">
+<h2 class="font-h2 text-white uppercase font-black flex items-center gap-2">
+<span class="material-symbols-outlined">terminal</span>
+                        RECENT_QUEST_LOGS
+                    </h2>
+<button class="text-white hover:text-[#ffd54f]">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+<div class="p-6 font-mono text-sm space-y-4 flex-1">
+<div class="flex items-center justify-between border-b-2 border-zinc-100 pb-2">
+<div class="flex items-center gap-4">
+<span class="text-zinc-400">[14:02]</span>
+<span class="bg-tertiary-container px-2 py-0.5 text-[10px] font-black border border-black uppercase text-tertiary">SUCCESS</span>
+<span class="text-black">STUDENT_492 COMPLETED 'SQL_DUNGEON'</span>
+</div>
+<span class="text-primary font-black">+450XP</span>
+</div>
+<div class="flex items-center justify-between border-b-2 border-zinc-100 pb-2">
+<div class="flex items-center gap-4">
+<span class="text-zinc-400">[13:58]</span>
+<span class="bg-primary-container px-2 py-0.5 text-[10px] font-black border border-black uppercase text-on-primary-container">PENDING</span>
+<span class="text-black">QUEST 'ARRAY_SORT_01' SUBMITTED BY USER_88</span>
+</div>
+<span class="text-secondary font-black">REVIEW</span>
+</div>
+<div class="flex items-center justify-between border-b-2 border-zinc-100 pb-2">
+<div class="flex items-center gap-4">
+<span class="text-zinc-400">[13:45]</span>
+<span class="bg-error-container px-2 py-0.5 text-[10px] font-black border border-black uppercase text-error">ALERT</span>
+<span class="text-black">SYSTEM_OVERLOAD_PREVENTED IN NODE_B</span>
+</div>
+<span class="text-error font-black uppercase">LOGGED</span>
+</div>
+<div class="flex items-center justify-between border-b-2 border-zinc-100 pb-2">
+<div class="flex items-center gap-4">
+<span class="text-zinc-400">[13:30]</span>
+<span class="bg-tertiary-container px-2 py-0.5 text-[10px] font-black border border-black uppercase text-tertiary">SUCCESS</span>
+<span class="text-black">NEW STUDENT 'KODER_99' JOINED THE REALM</span>
+</div>
+<span class="text-primary font-black uppercase">LVL 1</span>
+</div>
+</div>
+</div>
+<!-- Live Raids (Right) -->
+<div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+<div class="bg-secondary border-b-4 border-black p-3">
+<h2 class="font-label-pixel text-white uppercase text-center">STUDENT_MANAGEMENT</h2>
+</div>
+<div class="p-2 bg-surface flex-1">
+<div class="flex flex-col font-label-pixel text-black">
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">groups</span>
+                VIEW ALL STUDENTS
+            </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">person_add</span>
+                ADD NEW STUDENT
+            </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">manage_accounts</span>
+                EDIT STUDENT PROFILE
+            </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">hub</span>
+                MANAGE STUDENT GROUPS
+            </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4" href="#">
+<span class="material-symbols-outlined text-lg">lock_reset</span>
+                RESET PASSWORDS
+            </a>
+</div>
+</div>
+</div>
+</div>
+<!-- Management Pixel Panels (Quests & Rewards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+<!-- Quest Management Panel -->
+<div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="bg-primary border-b-4 border-black p-3">
+<h2 class="font-label-pixel text-white uppercase text-center">QUEST_MANAGEMENT</h2>
+</div>
+<div class="p-2 bg-surface">
+<div class="flex flex-col font-label-pixel text-black">
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">search</span>
+                            VIEW QUESTS
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">add_box</span>
+                            ADD QUEST
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">edit_square</span>
+                            EDIT QUEST
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200 text-error" href="#" onclick="document.getElementById('delete-confirm').classList.remove('hidden')">
+<span class="material-symbols-outlined text-lg">delete_forever</span>
+                            DELETE QUEST
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4" href="#">
+<span class="material-symbols-outlined text-lg">fact_check</span>
+                            APPROVE / REJECT SUBMISSIONS
+                        </a>
+</div>
+</div>
+</div>
+<!-- Reward Management Panel -->
+<div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="bg-tertiary border-b-4 border-black p-3">
+<h2 class="font-label-pixel text-white uppercase text-center">REWARD_MANAGEMENT</h2>
+</div>
+<div class="p-2 bg-surface">
+<div class="flex flex-col font-label-pixel text-black">
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+                            VIEW REWARDS
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">library_add</span>
+                            ADD REWARD
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200" href="#">
+<span class="material-symbols-outlined text-lg">edit_note</span>
+                            EDIT REWARD
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4 border-b border-zinc-200 text-error" href="#" onclick="document.getElementById('delete-confirm').classList.remove('hidden')">
+<span class="material-symbols-outlined text-lg">delete_sweep</span>
+                            DELETE REWARD
+                        </a>
+<a class="pixel-menu-item flex items-center gap-4 p-4" href="#">
+<span class="material-symbols-outlined text-lg">redeem</span>
+                            MANAGE REDEMPTIONS
+                        </a>
+</div>
+</div>
+</div>
+</div>
+<!-- Student Ranking Table (Spanning Bottom) -->
+<section class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="p-6 border-b-4 border-black flex flex-wrap gap-4 justify-between items-center bg-zinc-50">
+<h2 class="font-h2 text-black uppercase font-black">STUDENT_RANKING</h2>
+<div class="flex gap-4">
+<div class="relative">
+<input class="bg-white border-2 border-black font-mono text-xs p-2 pr-10 focus:ring-0 focus:border-[#FFD54F] outline-none w-64 uppercase" placeholder="SEARCH_STUDENT..." type="text">
+<span class="material-symbols-outlined absolute right-2 top-1.5">search</span>
+</div>
+<button class="bg-black text-white px-4 py-2 font-mono text-xs font-black flex items-center gap-2 uppercase">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        FILTER
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-mono text-sm">
+<thead class="bg-zinc-100 border-b-2 border-black">
+<tr>
+<th class="p-4 uppercase font-black">RANK</th>
+<th class="p-4 uppercase font-black">PLAYER</th>
+<th class="p-4 uppercase font-black">GUILD</th>
+<th class="p-4 uppercase font-black">XP_GAINED</th>
+<th class="p-4 uppercase font-black">STATUS</th>
+<th class="p-4 uppercase font-black">ACTION</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
+<td class="p-4 font-black">#01</td>
+<td class="p-4 flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 border border-black flex items-center justify-center text-[10px] font-black uppercase">P1</div>
+<span class="font-black uppercase">BINARY_WIZARD</span>
+</td>
+<td class="p-4 uppercase">FULL_STACK_MASTERS</td>
+<td class="p-4 text-primary font-black">45,290</td>
+<td class="p-4"><span class="bg-tertiary-container px-2 py-1 text-[10px] border border-black font-black uppercase text-tertiary">GOLD_TIER</span></td>
+<td class="p-4"><button class="material-symbols-outlined text-black">more_vert</button></td>
+</tr>
+<tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
+<td class="p-4 font-black">#02</td>
+<td class="p-4 flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 border border-black flex items-center justify-center text-[10px] font-black uppercase">P2</div>
+<span class="font-black uppercase">LOGIC_KNIGHT</span>
+</td>
+<td class="p-4 uppercase">CODE_REAPER</td>
+<td class="p-4 text-primary font-black">42,100</td>
+<td class="p-4"><span class="bg-tertiary-container px-2 py-1 text-[10px] border border-black font-black uppercase text-tertiary">GOLD_TIER</span></td>
+<td class="p-4"><button class="material-symbols-outlined text-black">more_vert</button></td>
+</tr>
+<tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
+<td class="p-4 font-black">#03</td>
+<td class="p-4 flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 border border-black flex items-center justify-center text-[10px] font-black uppercase">P3</div>
+<span class="font-black uppercase">PIXEL_REBEL</span>
+</td>
+<td class="p-4 uppercase">FRONTEND_FORCE</td>
+<td class="p-4 text-primary font-black">39,850</td>
+<td class="p-4"><span class="bg-primary-container px-2 py-1 text-[10px] border border-black font-black uppercase text-on-primary-container">SILVER_TIER</span></td>
+<td class="p-4"><button class="material-symbols-outlined text-black">more_vert</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-2 px-6 flex justify-between items-center bg-black text-[#FFD54F] font-mono text-xs uppercase border-t-4 border-zinc-800">
+<div class="flex items-center gap-4">
+<span class="font-black">© 1984 IT_QUEST_OS v1.0</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 bg-[#1e6d12] rounded-full"></span>
+<span class="text-[8px]">SYSTEM_STABLE</span>
+</div>
+</div>
+<div class="flex gap-6">
+<a class="hover:text-white transition-colors" href="#">SUPPORT</a>
+<a class="hover:text-white transition-colors" href="#">SYSTEM_LOGS</a>
+<a class="hover:text-white transition-colors" href="#">VERSION_CONTROL</a>
+</div>
+</footer>
+
+
+</body></html>

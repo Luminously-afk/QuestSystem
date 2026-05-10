@@ -36,7 +36,7 @@ class StudentController extends Controller {
     public function submit($questId = null) {
         $this->requireStudent();
 
-        if ($questId === null) {
+        if ($questId === null || $_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('student/quests');
         }
 
@@ -46,36 +46,36 @@ class StudentController extends Controller {
         }
 
         $existing = $this->submissionModel->getByUserQuest($_SESSION['user_id'], $questId);
+        $proofText = trim($_POST['proof_text'] ?? '');
 
         $data = [
             'error' => '',
-            'quest' => $quest,
-            'existing' => $existing
+            'quests' => $this->questModel->getActiveWithStatus($_SESSION['user_id']),
+            'open_submit_modal' => true,
+            'submit_quest_id' => $questId,
+            'proof_text' => $proofText
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $proofText = trim($_POST['proof_text'] ?? '');
-
-            if ($proofText === '') {
-                $data['error'] = 'Proof text is required.';
-            } elseif ($existing && $existing['status'] !== 'rejected') {
-                $data['error'] = 'You already submitted this quest.';
+        if ($proofText === '') {
+            $data['error'] = 'Proof text is required.';
+        } elseif ($existing && $existing['status'] !== 'rejected') {
+            $data['error'] = 'You already submitted this quest.';
+        } else {
+            if ($existing && $existing['status'] === 'rejected') {
+                $saved = $this->submissionModel->resubmit($existing['submission_id'], $proofText);
             } else {
-                if ($existing && $existing['status'] === 'rejected') {
-                    $saved = $this->submissionModel->resubmit($existing['submission_id'], $proofText);
-                } else {
-                    $saved = $this->submissionModel->create($_SESSION['user_id'], $questId, $proofText);
-                }
+                $saved = $this->submissionModel->create($_SESSION['user_id'], $questId, $proofText);
+            }
 
-                if ($saved) {
-                    $this->redirect('student/submissions?success=submitted');
-                } else {
-                    $data['error'] = 'Submission failed. Please try again.';
-                }
+            if ($saved) {
+                $this->redirect('student/submissions?success=submitted');
+                return;
+            } else {
+                $data['error'] = 'Submission failed. Please try again.';
             }
         }
 
-        $this->view('student/quests/submit', $data);
+        $this->view('student/quests/index', $data);
     }
 
     public function submissions() {

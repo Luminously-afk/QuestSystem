@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Lexend:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .pixel-shadow {
+            box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+        }
+        .pixel-shadow-sm {
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+        }
+        .active-press:active {
+            transform: translate(4px, 4px);
+            box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+        }
+        body {
+            background-color: #f9f9f9;
+            image-rendering: pixelated;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#5f5e5e",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#88da73",
+                        "primary-fixed-dim": "#ebc23e",
+                        "on-surface": "#1a1c1c",
+                        "secondary-container": "#e2dfde",
+                        "on-tertiary-container": "#1e6d12",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-surface-variant": "#4d4634",
+                        "on-secondary-fixed-variant": "#474746",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "primary-container": "#ffd54f",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#a3f78c",
+                        "primary": "#735c00",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#735c00",
+                        "surface-container-high": "#e8e8e8",
+                        "on-primary-fixed": "#241a00",
+                        "background": "#f9f9f9",
+                        "outline-variant": "#d0c6ae",
+                        "outline": "#7f7662",
+                        "on-primary-container": "#735c00",
+                        "on-background": "#1a1c1c",
+                        "tertiary-container": "#9aed83",
+                        "surface-container-low": "#f4f3f3",
+                        "surface": "#f9f9f9",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "inverse-surface": "#2f3131",
+                        "secondary-fixed": "#e5e2e1",
+                        "inverse-primary": "#ebc23e",
+                        "surface-dim": "#dadada",
+                        "on-primary-fixed-variant": "#574500",
+                        "tertiary": "#1e6d12",
+                        "surface-bright": "#f9f9f9",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#eeeeee",
+                        "primary-fixed": "#ffe087",
+                        "on-tertiary-fixed": "#012200",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#055300",
+                        "on-secondary-container": "#636262",
+                        "inverse-on-surface": "#f1f1f1"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "unit": "4px",
+                        "lg": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "margin": "24px",
+                        "xl": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "h3": ["Press Start 2P"],
+                        "body-md": ["Lexend"],
+                        "body-lg": ["Lexend"],
+                        "label-pixel": ["Press Start 2P"],
+                        "button-text": ["Press Start 2P"],
+                        "h1": ["Press Start 2P"],
+                        "h2": ["Press Start 2P"]
+                    },
+                    "fontSize": {
+                        "h3": ["12px", {"lineHeight": "1.4", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "label-pixel": ["10px", {"lineHeight": "1", "letterSpacing": "1px", "fontWeight": "400"}],
+                        "button-text": ["12px", {"lineHeight": "1", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "h1": ["24px", {"lineHeight": "1.5", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "h2": ["18px", {"lineHeight": "1.4", "letterSpacing": "0px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden">
+<div class="flex h-screen overflow-hidden">
+<!-- NavigationDrawer -->
+<aside class="h-screen w-64 flex flex-col border-r-4 border-black bg-white dark:bg-zinc-900 shrink-0">
+<div class="p-6 border-b-4 border-black">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-primary-container border-2 border-black flex items-center justify-center pixel-shadow-sm">
+<img alt="User Pixel Avatar" class="w-10 h-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPCHKeGmnORttc1_6T1zoDi-FyVvqa9XgTHzCP-FFuQ8nSpID2oQHGf0Uu0Jq6Wwng3tRhW0ESVRiTKP1Ro_4RffQWR2iS6BWJ_GKBsEJ3mtTyJA0QgYOl7qfZrvdfDkdfzUXFEkAEkY9cHlQh70ppm72ACp4ZKcsHOni3UM1kNqlsLA32vg_FQBON7RdCZ43Obvu6285rculAtC44xxILeitsCE45ogKT_ZM9zw16c_Gffc1ptVUnC_ILUgG6nQLmH2yfmO581WQ"/>
+</div>
+<div>
+<h2 class="text-black dark:text-white font-mono font-bold uppercase text-sm">PLAYER_01</h2>
+</div>
+</div>
+</div>
+<nav class="flex-1 py-4 overflow-y-auto">
+<a class="flex items-center gap-3 bg-[#FFD54F] text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] m-2 px-4 py-3 font-mono font-bold uppercase text-xs transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style='font-variation-settings: "FILL" 1;'>dashboard</span>
+                    DASHBOARD
+                </a>
+<a class="flex items-center gap-3 text-zinc-500 m-2 border-2 border-transparent px-4 py-3 font-mono font-bold uppercase text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    SETTINGS
+                </a>
+</nav>
+<footer class="w-full py-2 px-6 flex justify-between items-center bg-black border-t-4 border-zinc-800 text-[#FFD54F] font-mono text-xs uppercase">
+<span class="">© 1984 IT_QUEST_OS</span>
+<span class="material-symbols-outlined text-sm">settings</span>
+</footer>
+</aside>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col min-w-0">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-[#FFD54F] border-b-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-black text-3xl" data-icon="videogame_asset">videogame_asset</span>
+<h1 class="font-mono uppercase tracking-tighter font-black text-2xl text-black">IT QUEST SYSTEM</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="font-mono uppercase tracking-tighter font-black text-black border-b-4 border-black pb-1">ADMIN_ROOT</span>
+</div>
+<button class="font-mono uppercase tracking-tighter font-black text-black/70 hover:text-black transition-all duration-75">LOGOUT</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto p-margin bg-[#dadada] bg-[radial-gradient(#888_1px,transparent_1px)] [background-size:20px_20px] flex flex-col items-center justify-start py-xl">
+<div class="w-full max-w-4xl flex flex-col items-center">
+<!-- Screen Header -->
+<div class="mb-lg text-center w-full">
+<span class="bg-black text-[#FFD54F] px-2 py-1 font-label-pixel text-label-pixel uppercase mb-4 inline-block">System Configuration</span>
+<h2 class="font-h1 text-h1 uppercase text-black">CREATE NEW STUDENT ACCOUNT</h2>
+</div>
+<!-- Main Form Panel -->
+<div class="w-full bg-white border-4 border-black p-xl pixel-shadow relative overflow-hidden">
+<!-- Retro Grid Background Decoration -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+<div class="relative z-10 space-y-8">
+<div class="grid grid-cols-1 gap-8">
+<!-- Full Name -->
+<div class="space-y-3">
+<label class="font-label-pixel text-label-pixel text-black block uppercase">FULL_NAME.EXE</label>
+<input class="w-full bg-white border-2 border-black p-md font-body-md focus:outline-none focus:ring-0 focus:border-primary-container shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.1)] rounded-none" placeholder="ENTER STUDENT NAME..." type="text"/>
+</div>
+<!-- Email -->
+<div class="space-y-3">
+<label class="font-label-pixel text-label-pixel text-black block uppercase">NETWORK_ADDRESS (EMAIL)</label>
+<input class="w-full bg-white border-2 border-black p-md font-body-md focus:outline-none focus:ring-0 focus:border-primary-container shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.1)] rounded-none" placeholder="NAME@olivarezcollege.edu.ph" type="email"/>
+</div>
+<!-- Student ID & Password Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-3">
+<label class="font-label-pixel text-label-pixel text-error block uppercase">UNIQUE_ID (ERROR!)</label>
+<input class="w-full bg-white border-2 border-error p-md font-body-md focus:outline-none focus:ring-0 shadow-[inset_4px_4px_0px_0px_rgba(255,0,0,0.1)] rounded-none text-error" placeholder="241C-1234" type="text" value="STU_99"/>
+<p class="font-label-pixel text-[8px] text-error mt-1 uppercase">ID_ALREADY_EXISTS_IN_DATABASE</p>
+</div>
+<div class="space-y-3">
+<label class="font-label-pixel text-label-pixel text-black block uppercase">SECURITY_CYPHER</label>
+<input class="w-full bg-white border-2 border-black p-md font-body-md focus:outline-none focus:ring-0 focus:border-primary-container shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.1)] rounded-none" type="password" value="********"/>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-6">
+<button class="w-full bg-[#FFD54F] border-4 border-black p-8 font-button-text text-button-text text-black pixel-shadow active-press uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-white transition-all">
+<span class="material-symbols-outlined scale-150" data-icon="person_add">person_add</span>
+                                    ADD STUDENT
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Footer Area -->
+<footer class="bg-black py-2 px-6 flex justify-between items-center border-t-4 border-zinc-800">
+<div class="flex gap-4">
+<a class="text-[#FFD54F] font-mono text-xs uppercase hover:text-white transition-all" href="#">SUPPORT</a>
+<a class="text-[#FFD54F] font-mono text-xs uppercase hover:text-white transition-all" href="#">SYSTEM_LOGS</a>
+</div>
+<div class="text-[#FFD54F] font-mono text-xs uppercase opacity-50">
+                    V1.0.84_STABLE
+                </div>
+</footer>
+</div>
+</div>
+</body></html>

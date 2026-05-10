@@ -48,58 +48,63 @@ class AdminController extends Controller {
             ]
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $title = trim($_POST['title'] ?? '');
-            $description = trim($_POST['description'] ?? '');
-            $category = trim($_POST['category'] ?? '');
-            $pointsRaw = $_POST['points'] ?? '';
-            $deadlineRaw = trim($_POST['deadline'] ?? '');
-            $status = $_POST['status'] ?? 'active';
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/quests');
+        }
 
-            $data['old'] = [
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $category = trim($_POST['category'] ?? '');
+        $pointsRaw = $_POST['points'] ?? '';
+        $deadlineRaw = trim($_POST['deadline'] ?? '');
+        $status = $_POST['status'] ?? 'active';
+
+        $data['old'] = [
+            'title' => $title,
+            'description' => $description,
+            'category' => $category,
+            'points' => $pointsRaw,
+            'deadline' => $deadlineRaw,
+            'status' => $status
+        ];
+
+        $points = (int) $pointsRaw;
+        $deadline = $this->normalizeDeadline($deadlineRaw);
+        $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+
+        if ($title === '' || $description === '' || $category === '' || $deadlineRaw === '') {
+            $data['error'] = 'All fields are required.';
+        } elseif ($points <= 0) {
+            $data['error'] = 'Points must be greater than zero.';
+        } elseif ($deadline === null) {
+            $data['error'] = 'Please enter a valid deadline.';
+        } else {
+            $created = $this->questModel->create([
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
-                'points' => $pointsRaw,
-                'deadline' => $deadlineRaw,
-                'status' => $status
-            ];
+                'points' => $points,
+                'deadline' => $deadline,
+                'status' => $status,
+                'created_by' => $_SESSION['user_id']
+            ]);
 
-            $points = (int) $pointsRaw;
-            $deadline = $this->normalizeDeadline($deadlineRaw);
-            $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
-
-            if ($title === '' || $description === '' || $category === '' || $deadlineRaw === '') {
-                $data['error'] = 'All fields are required.';
-            } elseif ($points <= 0) {
-                $data['error'] = 'Points must be greater than zero.';
-            } elseif ($deadline === null) {
-                $data['error'] = 'Please enter a valid deadline.';
+            if ($created) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'quest_create',
+                    'Created quest: ' . $title
+                );
+                $this->redirect('admin/quests?success=created');
+                return;
             } else {
-                $created = $this->questModel->create([
-                    'title' => $title,
-                    'description' => $description,
-                    'category' => $category,
-                    'points' => $points,
-                    'deadline' => $deadline,
-                    'status' => $status,
-                    'created_by' => $_SESSION['user_id']
-                ]);
-
-                if ($created) {
-                    $this->auditLogModel->create(
-                        $_SESSION['user_id'],
-                        'quest_create',
-                        'Created quest: ' . $title
-                    );
-                    $this->redirect('admin/quests?success=created');
-                } else {
-                    $data['error'] = 'Failed to create quest. Please try again.';
-                }
+                $data['error'] = 'Failed to create quest. Please try again.';
             }
         }
 
-        $this->view('admin/quests/create', $data);
+        $data['quests'] = $this->questModel->getAll();
+        $data['open_create_modal'] = true;
+        $this->view('admin/quests/index', $data);
     }
 
     public function editQuest($questId = null) {
@@ -121,58 +126,63 @@ class AdminController extends Controller {
             'quest' => $quest
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $title = trim($_POST['title'] ?? '');
-            $description = trim($_POST['description'] ?? '');
-            $category = trim($_POST['category'] ?? '');
-            $pointsRaw = $_POST['points'] ?? '';
-            $deadlineRaw = trim($_POST['deadline'] ?? $quest['deadline_input']);
-            $status = $_POST['status'] ?? $quest['status'];
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/quests');
+        }
 
-            $points = (int) $pointsRaw;
-            $deadline = $this->normalizeDeadline($deadlineRaw);
-            $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $category = trim($_POST['category'] ?? '');
+        $pointsRaw = $_POST['points'] ?? '';
+        $deadlineRaw = trim($_POST['deadline'] ?? $quest['deadline_input']);
+        $status = $_POST['status'] ?? $quest['status'];
 
-            $data['quest'] = [
-                'quest_id' => $quest['quest_id'],
+        $points = (int) $pointsRaw;
+        $deadline = $this->normalizeDeadline($deadlineRaw);
+        $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+
+        $data['quest'] = [
+            'quest_id' => $quest['quest_id'],
+            'title' => $title,
+            'description' => $description,
+            'category' => $category,
+            'points' => $pointsRaw,
+            'deadline_input' => $deadlineRaw,
+            'status' => $status
+        ];
+
+        if ($title === '' || $description === '' || $category === '' || $deadlineRaw === '') {
+            $data['error'] = 'All fields are required.';
+        } elseif ($points <= 0) {
+            $data['error'] = 'Points must be greater than zero.';
+        } elseif ($deadline === null) {
+            $data['error'] = 'Please enter a valid deadline.';
+        } else {
+            $updated = $this->questModel->update($questId, [
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
-                'points' => $pointsRaw,
-                'deadline_input' => $deadlineRaw,
+                'points' => $points,
+                'deadline' => $deadline,
                 'status' => $status
-            ];
+            ]);
 
-            if ($title === '' || $description === '' || $category === '' || $deadlineRaw === '') {
-                $data['error'] = 'All fields are required.';
-            } elseif ($points <= 0) {
-                $data['error'] = 'Points must be greater than zero.';
-            } elseif ($deadline === null) {
-                $data['error'] = 'Please enter a valid deadline.';
+            if ($updated) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'quest_update',
+                    'Updated quest: ' . $title
+                );
+                $this->redirect('admin/quests?success=updated');
+                return;
             } else {
-                $updated = $this->questModel->update($questId, [
-                    'title' => $title,
-                    'description' => $description,
-                    'category' => $category,
-                    'points' => $points,
-                    'deadline' => $deadline,
-                    'status' => $status
-                ]);
-
-                if ($updated) {
-                    $this->auditLogModel->create(
-                        $_SESSION['user_id'],
-                        'quest_update',
-                        'Updated quest: ' . $title
-                    );
-                    $this->redirect('admin/quests?success=updated');
-                } else {
-                    $data['error'] = 'Failed to update quest. Please try again.';
-                }
+                $data['error'] = 'Failed to update quest. Please try again.';
             }
         }
 
-        $this->view('admin/quests/edit', $data);
+        $data['quests'] = $this->questModel->getAll();
+        $data['open_edit_modal'] = true;
+        $this->view('admin/quests/index', $data);
     }
 
     public function deleteQuest() {
@@ -259,48 +269,53 @@ class AdminController extends Controller {
             ]
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $rewardName = trim($_POST['reward_name'] ?? '');
-            $description = trim($_POST['description'] ?? '');
-            $pointsRaw = $_POST['required_points'] ?? '';
-            $status = $_POST['status'] ?? 'available';
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/rewards');
+        }
 
-            $data['old'] = [
+        $rewardName = trim($_POST['reward_name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $pointsRaw = $_POST['required_points'] ?? '';
+        $status = $_POST['status'] ?? 'available';
+
+        $data['old'] = [
+            'reward_name' => $rewardName,
+            'description' => $description,
+            'required_points' => $pointsRaw,
+            'status' => $status
+        ];
+
+        $points = (int) $pointsRaw;
+        $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
+
+        if ($rewardName === '' || $description === '') {
+            $data['error'] = 'All fields are required.';
+        } elseif ($points <= 0) {
+            $data['error'] = 'Required points must be greater than zero.';
+        } else {
+            $created = $this->rewardModel->create([
                 'reward_name' => $rewardName,
                 'description' => $description,
-                'required_points' => $pointsRaw,
+                'required_points' => $points,
                 'status' => $status
-            ];
+            ]);
 
-            $points = (int) $pointsRaw;
-            $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
-
-            if ($rewardName === '' || $description === '') {
-                $data['error'] = 'All fields are required.';
-            } elseif ($points <= 0) {
-                $data['error'] = 'Required points must be greater than zero.';
+            if ($created) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'reward_create',
+                    'Created reward: ' . $rewardName
+                );
+                $this->redirect('admin/rewards?success=created');
+                return;
             } else {
-                $created = $this->rewardModel->create([
-                    'reward_name' => $rewardName,
-                    'description' => $description,
-                    'required_points' => $points,
-                    'status' => $status
-                ]);
-
-                if ($created) {
-                    $this->auditLogModel->create(
-                        $_SESSION['user_id'],
-                        'reward_create',
-                        'Created reward: ' . $rewardName
-                    );
-                    $this->redirect('admin/rewards?success=created');
-                } else {
-                    $data['error'] = 'Failed to create reward. Please try again.';
-                }
+                $data['error'] = 'Failed to create reward. Please try again.';
             }
         }
 
-        $this->view('admin/rewards/create', $data);
+        $data['rewards'] = $this->rewardModel->getAll();
+        $data['open_create_modal'] = true;
+        $this->view('admin/rewards/index', $data);
     }
 
     public function editReward($rewardId = null) {
@@ -320,49 +335,54 @@ class AdminController extends Controller {
             'reward' => $reward
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $rewardName = trim($_POST['reward_name'] ?? '');
-            $description = trim($_POST['description'] ?? '');
-            $pointsRaw = $_POST['required_points'] ?? '';
-            $status = $_POST['status'] ?? $reward['status'];
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/rewards');
+        }
 
-            $points = (int) $pointsRaw;
-            $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
+        $rewardName = trim($_POST['reward_name'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $pointsRaw = $_POST['required_points'] ?? '';
+        $status = $_POST['status'] ?? $reward['status'];
 
-            $data['reward'] = [
-                'reward_id' => $rewardId,
+        $points = (int) $pointsRaw;
+        $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
+
+        $data['reward'] = [
+            'reward_id' => $rewardId,
+            'reward_name' => $rewardName,
+            'description' => $description,
+            'required_points' => $pointsRaw,
+            'status' => $status
+        ];
+
+        if ($rewardName === '' || $description === '') {
+            $data['error'] = 'All fields are required.';
+        } elseif ($points <= 0) {
+            $data['error'] = 'Required points must be greater than zero.';
+        } else {
+            $updated = $this->rewardModel->update($rewardId, [
                 'reward_name' => $rewardName,
                 'description' => $description,
-                'required_points' => $pointsRaw,
+                'required_points' => $points,
                 'status' => $status
-            ];
+            ]);
 
-            if ($rewardName === '' || $description === '') {
-                $data['error'] = 'All fields are required.';
-            } elseif ($points <= 0) {
-                $data['error'] = 'Required points must be greater than zero.';
+            if ($updated) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'reward_update',
+                    'Updated reward: ' . $rewardName
+                );
+                $this->redirect('admin/rewards?success=updated');
+                return;
             } else {
-                $updated = $this->rewardModel->update($rewardId, [
-                    'reward_name' => $rewardName,
-                    'description' => $description,
-                    'required_points' => $points,
-                    'status' => $status
-                ]);
-
-                if ($updated) {
-                    $this->auditLogModel->create(
-                        $_SESSION['user_id'],
-                        'reward_update',
-                        'Updated reward: ' . $rewardName
-                    );
-                    $this->redirect('admin/rewards?success=updated');
-                } else {
-                    $data['error'] = 'Failed to update reward. Please try again.';
-                }
+                $data['error'] = 'Failed to update reward. Please try again.';
             }
         }
 
-        $this->view('admin/rewards/edit', $data);
+        $data['rewards'] = $this->rewardModel->getAll();
+        $data['open_edit_modal'] = true;
+        $this->view('admin/rewards/index', $data);
     }
 
     public function deleteReward() {
@@ -468,55 +488,59 @@ class AdminController extends Controller {
             ]
         ];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $fullName = trim($_POST['full_name'] ?? '');
-            $studentId = trim($_POST['student_id'] ?? '');
-            $email = trim($_POST['email'] ?? '');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/students');
+        }
 
-            $data['old'] = [
+        $fullName = trim($_POST['full_name'] ?? '');
+        $studentId = trim($_POST['student_id'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+
+        $data['old'] = [
+            'full_name' => $fullName,
+            'student_id' => $studentId,
+            'email' => $email
+        ];
+
+        if ($fullName === '' || $studentId === '' || $email === '') {
+            $data['error'] = 'Full name, student ID, and email are required.';
+        } elseif (!$this->isValidStudentId($studentId)) {
+            $data['error'] = 'Student ID format is invalid. Use 241c-1234.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $data['error'] = 'Please enter a valid email address.';
+        } elseif ($this->userModel->findByEmail($email)) {
+            $data['error'] = 'Email is already registered.';
+        } elseif ($this->userModel->findByStudentId($studentId)) {
+            $data['error'] = 'Student ID is already registered.';
+        } else {
+            $plainPassword = $this->generateSimplePassword();
+            $passwordHash = password_hash($plainPassword, PASSWORD_DEFAULT);
+            $created = $this->userModel->create([
                 'full_name' => $fullName,
                 'student_id' => $studentId,
-                'email' => $email
-            ];
+                'email' => $email,
+                'password' => $passwordHash,
+                'role' => 'student',
+                'must_change_password' => 1
+            ]);
 
-            if ($fullName === '' || $studentId === '' || $email === '') {
-                $data['error'] = 'Full name, student ID, and email are required.';
-            } elseif (!$this->isValidStudentId($studentId)) {
-                $data['error'] = 'Student ID format is invalid. Use 241c-1234.';
-            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $data['error'] = 'Please enter a valid email address.';
-            } elseif ($this->userModel->findByEmail($email)) {
-                $data['error'] = 'Email is already registered.';
-            } elseif ($this->userModel->findByStudentId($studentId)) {
-                $data['error'] = 'Student ID is already registered.';
+            if ($created) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'student_create',
+                    'Created student account: ' . $fullName
+                );
+                $data['success'] = 'Student account created. Share the password below with the student.';
+                $data['generated_password'] = $plainPassword;
+                $data['old'] = ['full_name' => '', 'email' => ''];
             } else {
-                $plainPassword = $this->generateSimplePassword();
-                $passwordHash = password_hash($plainPassword, PASSWORD_DEFAULT);
-                $created = $this->userModel->create([
-                    'full_name' => $fullName,
-                    'student_id' => $studentId,
-                    'email' => $email,
-                    'password' => $passwordHash,
-                    'role' => 'student',
-                    'must_change_password' => 1
-                ]);
-
-                if ($created) {
-                    $this->auditLogModel->create(
-                        $_SESSION['user_id'],
-                        'student_create',
-                        'Created student account: ' . $fullName
-                    );
-                    $data['success'] = 'Student account created. Share the password below with the student.';
-                    $data['generated_password'] = $plainPassword;
-                    $data['old'] = ['full_name' => '', 'email' => ''];
-                } else {
-                    $data['error'] = 'Failed to create student account. Please try again.';
-                }
+                $data['error'] = 'Failed to create student account. Please try again.';
             }
         }
 
-        $this->view('admin/students/create', $data);
+        $data['students'] = $this->userModel->getStudents();
+        $data['open_create_modal'] = true;
+        $this->view('admin/students/index', $data);
     }
 
     private function requireAdmin() {

@@ -1,61 +1,170 @@
 <?php require_once '../app/views/layouts/header.php'; ?>
 
-<h3 class="mb-3">Reward Management</h3>
-<p class="mb-3">Create and manage rewards students can redeem.</p>
-
-<?php if (isset($_GET['success'])): ?>
-    <?php if ($_GET['success'] === 'created'): ?>
-        <div class="alert alert-success">Reward created successfully.</div>
-    <?php elseif ($_GET['success'] === 'updated'): ?>
-        <div class="alert alert-success">Reward updated successfully.</div>
-    <?php elseif ($_GET['success'] === 'deleted'): ?>
-        <div class="alert alert-success">Reward deleted successfully.</div>
-    <?php endif; ?>
-<?php endif; ?>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div></div>
-    <a class="btn btn-primary" href="<?php echo BASE_URL; ?>/admin/createReward">Add Reward</a>
+<!-- Breadcrumbs -->
+<div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
+    <span>ROOT</span>
+    <span class="material-symbols-outlined text-xs">chevron_right</span>
+    <span class="text-black">REWARDS</span>
 </div>
 
-<?php if (empty($rewards)): ?>
-    <div class="alert alert-info">No rewards found. Create your first reward.</div>
-<?php else: ?>
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Required Points</th>
-                    <th>Status</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($rewards as $reward): ?>
-                    <tr>
-                        <td>
-                            <?php echo htmlspecialchars($reward['reward_name']); ?>
-                            <div class="small text-muted"><?php echo htmlspecialchars($reward['description']); ?></div>
-                        </td>
-                        <td><?php echo htmlspecialchars($reward['required_points']); ?></td>
-                        <td>
-                            <span class="badge bg-<?php echo $reward['status'] === 'available' ? 'success' : 'secondary'; ?>">
-                                <?php echo htmlspecialchars($reward['status']); ?>
-                            </span>
-                        </td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-primary" href="<?php echo BASE_URL; ?>/admin/editReward/<?php echo $reward['reward_id']; ?>">Edit</a>
-                            <form method="post" action="<?php echo BASE_URL; ?>/admin/deleteReward" class="d-inline" onsubmit="return confirm('Delete this reward?');">
-                                <input type="hidden" name="reward_id" value="<?php echo $reward['reward_id']; ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+<div class="flex justify-between items-center mb-8">
+    <h2 class="font-h1 text-h1 uppercase text-on-background">REWARD MANAGEMENT</h2>
+    <button onclick="openModal('create-reward-modal')" class="bg-[#FFD54F] text-black border-4 border-black px-4 py-2 font-button-text hover:bg-zinc-100 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
+        ADD REWARD
+    </button>
+</div>
+
+<?php if (isset($_GET['success'])): ?>
+    <div class="bg-[#9aed83] border-4 border-black p-4 mb-8 font-mono font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+        <?php 
+            if ($_GET['success'] === 'created') echo "Reward created successfully.";
+            elseif ($_GET['success'] === 'updated') echo "Reward updated successfully.";
+            elseif ($_GET['success'] === 'deleted') echo "Reward deleted successfully.";
+        ?>
     </div>
 <?php endif; ?>
+
+<?php if (!empty($error)): ?>
+    <div class="bg-[#ffdad6] border-4 border-black p-4 mb-8 font-mono font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+        <?php echo htmlspecialchars($error); ?>
+    </div>
+<?php endif; ?>
+
+<section class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+    <div class="p-4 border-b-4 border-black flex flex-wrap gap-4 justify-between items-center bg-zinc-50">
+        <h2 class="font-h2 text-black uppercase font-black">ALL REWARDS</h2>
+    </div>
+    <div class="overflow-x-auto">
+        <?php if (empty($rewards)): ?>
+            <div class="p-6 font-mono text-sm uppercase">No rewards found. Create your first reward.</div>
+        <?php else: ?>
+            <table class="w-full text-left font-mono text-sm">
+                <thead class="bg-zinc-100 border-b-4 border-black">
+                    <tr>
+                        <th class="p-4 uppercase font-black">NAME</th>
+                        <th class="p-4 uppercase font-black">REQUIRED POINTS</th>
+                        <th class="p-4 uppercase font-black">STATUS</th>
+                        <th class="p-4 uppercase font-black text-right">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rewards as $reward): ?>
+                        <tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
+                            <td class="p-4">
+                                <div class="font-bold text-black uppercase"><?php echo htmlspecialchars($reward['reward_name']); ?></div>
+                                <div class="text-xs text-secondary mt-1"><?php echo htmlspecialchars($reward['description']); ?></div>
+                            </td>
+                            <td class="p-4 text-primary font-black"><?php echo htmlspecialchars($reward['required_points']); ?></td>
+                            <td class="p-4">
+                                <span class="px-2 py-1 text-[10px] border border-black font-black uppercase <?php echo $reward['status'] === 'available' ? 'bg-[#9aed83] text-[#1e6d12]' : 'bg-zinc-200 text-zinc-600'; ?>">
+                                    <?php echo htmlspecialchars($reward['status']); ?>
+                                </span>
+                            </td>
+                            <td class="p-4 text-right">
+                                <button onclick="openEditModal(<?php echo htmlspecialchars(json_encode($reward)); ?>)" class="text-primary hover:text-black mx-2">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <form method="post" action="<?php echo BASE_URL; ?>/admin/deleteReward" class="inline-block" onsubmit="return confirm('Delete this reward?');">
+                                    <input type="hidden" name="reward_id" value="<?php echo $reward['reward_id']; ?>">
+                                    <button type="submit" class="text-error hover:text-black mx-2">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+</section>
+
+<!-- Create Reward Dialog -->
+<dialog id="create-reward-modal" class="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
+    <div class="bg-tertiary border-b-4 border-black p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase">ADD NEW REWARD</h2>
+        <button onclick="closeModal('create-reward-modal')" class="text-white hover:text-zinc-200"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="<?php echo BASE_URL; ?>/admin/createReward" class="p-6 flex flex-col gap-4 font-mono">
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">REWARD NAME</label>
+            <input type="text" name="reward_name" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" value="<?php echo htmlspecialchars($old['reward_name'] ?? ''); ?>" required>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">DESCRIPTION</label>
+            <textarea name="description" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" rows="3" required><?php echo htmlspecialchars($old['description'] ?? ''); ?></textarea>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">REQUIRED POINTS</label>
+            <input type="number" name="required_points" min="1" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" value="<?php echo htmlspecialchars($old['required_points'] ?? ''); ?>" required>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">STATUS</label>
+            <select name="status" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary">
+                <option value="available" <?php echo ($old['status'] ?? '') === 'available' ? 'selected' : ''; ?>>AVAILABLE</option>
+                <option value="unavailable" <?php echo ($old['status'] ?? '') === 'unavailable' ? 'selected' : ''; ?>>UNAVAILABLE</option>
+            </select>
+        </div>
+        <div class="flex gap-4 mt-4">
+            <button type="button" onclick="closeModal('create-reward-modal')" class="flex-1 bg-zinc-200 border-2 border-black p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
+            <button type="submit" class="flex-1 bg-tertiary text-white border-2 border-black p-3 font-button-text hover:bg-[#154d0d]">SAVE REWARD</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Edit Reward Dialog -->
+<dialog id="edit-reward-modal" class="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
+    <div class="bg-tertiary border-b-4 border-black p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase">EDIT REWARD</h2>
+        <button onclick="closeModal('edit-reward-modal')" class="text-white hover:text-zinc-200"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="<?php echo BASE_URL; ?>/admin/editReward" class="p-6 flex flex-col gap-4 font-mono">
+        <input type="hidden" name="reward_id" id="edit-reward-id">
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">REWARD NAME</label>
+            <input type="text" name="reward_name" id="edit-reward-name" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" required>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">DESCRIPTION</label>
+            <textarea name="description" id="edit-description" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" rows="3" required></textarea>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">REQUIRED POINTS</label>
+            <input type="number" name="required_points" id="edit-required-points" min="1" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary" required>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">STATUS</label>
+            <select name="status" id="edit-status" class="border-2 border-black p-2 focus:outline-none focus:border-tertiary">
+                <option value="available">AVAILABLE</option>
+                <option value="unavailable">UNAVAILABLE</option>
+            </select>
+        </div>
+        <div class="flex gap-4 mt-4">
+            <button type="button" onclick="closeModal('edit-reward-modal')" class="flex-1 bg-zinc-200 border-2 border-black p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
+            <button type="submit" class="flex-1 bg-tertiary text-white border-2 border-black p-3 font-button-text hover:bg-[#154d0d]">UPDATE REWARD</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    function openEditModal(reward) {
+        document.getElementById('edit-reward-id').value = reward.reward_id;
+        document.getElementById('edit-reward-name').value = reward.reward_name;
+        document.getElementById('edit-description').value = reward.description;
+        document.getElementById('edit-required-points').value = reward.required_points;
+        document.getElementById('edit-status').value = reward.status;
+        
+        document.querySelector('#edit-reward-modal form').action = "<?php echo BASE_URL; ?>/admin/editReward/" + reward.reward_id;
+        
+        openModal('edit-reward-modal');
+    }
+
+    <?php if (!empty($open_create_modal)): ?>
+        window.addEventListener('DOMContentLoaded', () => { openModal('create-reward-modal'); });
+    <?php endif; ?>
+    <?php if (!empty($open_edit_modal)): ?>
+        window.addEventListener('DOMContentLoaded', () => { openModal('edit-reward-modal'); });
+    <?php endif; ?>
+</script>
 
 <?php require_once '../app/views/layouts/footer.php'; ?>
