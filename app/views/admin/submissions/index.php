@@ -1,5 +1,15 @@
 <?php require_once '../app/views/layouts/header.php'; ?>
 
+<?php
+    $proofLabels = [
+        'text' => 'Text',
+        'image' => 'Single Image',
+        'image_text' => 'Image + Text',
+        'multi_image' => 'Multiple Images',
+        'none' => 'No Proof'
+    ];
+?>
+
 <!-- Breadcrumbs -->
 <div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
     <span>ROOT</span>
@@ -51,6 +61,10 @@
                 </thead>
                 <tbody>
                     <?php foreach ($submissions as $submission): ?>
+                        <?php
+                            $proofType = $submission['proof_type'] ?? ($submission['quest_proof_type'] ?? 'text');
+                            $files = $submission_files[$submission['submission_id']] ?? [];
+                        ?>
                         <tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
                             <td class="p-4">
                                 <div class="font-bold text-black uppercase"><?php echo htmlspecialchars($submission['full_name']); ?></div>
@@ -61,9 +75,26 @@
                                 <div class="text-primary font-black text-xs">+<?php echo htmlspecialchars($submission['points']); ?> XP</div>
                             </td>
                             <td class="p-4 text-xs">
-                                <div class="max-h-20 overflow-y-auto">
-                                    <?php echo nl2br(htmlspecialchars($submission['proof_text'])); ?>
+                                <div class="text-[10px] uppercase font-bold text-zinc-600 mb-2">
+                                    <?php echo htmlspecialchars($proofLabels[$proofType] ?? 'Text'); ?>
                                 </div>
+                                <?php if (!empty($submission['proof_text'])): ?>
+                                    <div class="max-h-20 overflow-y-auto mb-2">
+                                        <?php echo nl2br(htmlspecialchars($submission['proof_text'])); ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($files)): ?>
+                                    <div class="flex flex-wrap gap-2">
+                                        <?php foreach ($files as $filePath): ?>
+                                            <a href="<?php echo BASE_URL . '/' . htmlspecialchars($filePath); ?>" target="_blank" rel="noopener" class="block">
+                                                <img src="<?php echo BASE_URL . '/' . htmlspecialchars($filePath); ?>" alt="Proof image" class="h-16 w-16 object-cover border border-black" />
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (empty($submission['proof_text']) && empty($files)): ?>
+                                    <div class="text-[10px] uppercase text-zinc-400">No proof provided.</div>
+                                <?php endif; ?>
                             </td>
                             <td class="p-4">
                                 <span class="px-2 py-1 text-[10px] border border-black font-black uppercase 

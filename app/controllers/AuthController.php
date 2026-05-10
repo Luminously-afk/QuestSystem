@@ -30,6 +30,10 @@ class AuthController extends Controller {
             $data['info'] = 'Registration is disabled. Please contact the admin for an account.';
         }
 
+        if (isset($_GET['error']) && $_GET['error'] === 'inactive') {
+            $data['error'] = 'Your account is deactivated. Please contact the admin.';
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $identifier = trim($_POST['identifier'] ?? '');
             $password = $_POST['password'] ?? '';
@@ -48,6 +52,8 @@ class AuthController extends Controller {
 
                 if (!$user || !password_verify($password, $user['password'])) {
                     $data['error'] = 'Invalid email or password.';
+                } elseif ((int) ($user['is_active'] ?? 1) !== 1) {
+                    $data['error'] = 'Your account is deactivated. Please contact the admin.';
                 } else {
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user['user_id'];

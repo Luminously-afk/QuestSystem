@@ -1,5 +1,20 @@
 <?php require_once '../app/views/layouts/header.php'; ?>
 
+<?php
+    $scopeLabels = [
+        'all' => 'All Years',
+        'year' => 'Single Year',
+        'multi' => 'Multiple Years'
+    ];
+    $proofLabels = [
+        'text' => 'Text',
+        'image' => 'Single Image',
+        'image_text' => 'Image + Text',
+        'multi_image' => 'Multiple Images',
+        'none' => 'No Proof'
+    ];
+?>
+
 <!-- Breadcrumbs -->
 <div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
     <span>ROOT</span>
@@ -44,6 +59,8 @@
                         <th class="p-4 uppercase font-black">TITLE</th>
                         <th class="p-4 uppercase font-black">CATEGORY</th>
                         <th class="p-4 uppercase font-black">POINTS</th>
+                        <th class="p-4 uppercase font-black">SCOPE</th>
+                        <th class="p-4 uppercase font-black">PROOF</th>
                         <th class="p-4 uppercase font-black">DEADLINE</th>
                         <th class="p-4 uppercase font-black">STATUS</th>
                         <th class="p-4 uppercase font-black text-right">ACTIONS</th>
@@ -55,6 +72,18 @@
                             <td class="p-4 font-bold text-black"><?php echo htmlspecialchars($quest['title']); ?></td>
                             <td class="p-4 uppercase"><?php echo htmlspecialchars($quest['category']); ?></td>
                             <td class="p-4 text-primary font-black"><?php echo htmlspecialchars($quest['points']); ?></td>
+                            <td class="p-4 text-xs uppercase font-bold text-zinc-600">
+                                <?php
+                                    $scopeText = $scopeLabels[$quest['scope_type']] ?? 'All Years';
+                                    if ($quest['scope_type'] !== 'all' && !empty($quest['scope_years'])) {
+                                        $scopeText .= ' (' . $quest['scope_years'] . ')';
+                                    }
+                                    echo htmlspecialchars($scopeText);
+                                ?>
+                            </td>
+                            <td class="p-4 text-xs uppercase font-bold text-zinc-600">
+                                <?php echo htmlspecialchars($proofLabels[$quest['proof_type']] ?? 'Text'); ?>
+                            </td>
                             <td class="p-4 uppercase"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($quest['deadline']))); ?></td>
                             <td class="p-4">
                                 <span class="px-2 py-1 text-[10px] border border-black font-black uppercase <?php echo $quest['status'] === 'active' ? 'bg-[#9aed83] text-[#1e6d12]' : 'bg-zinc-200 text-zinc-600'; ?>">
@@ -100,6 +129,39 @@
             <input type="text" name="category" class="border-2 border-black p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['category'] ?? ''); ?>" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">SCOPE TYPE</label>
+            <select name="scope_type" id="create-scope-type" class="border-2 border-black p-2 focus:outline-none focus:border-primary">
+                <option value="all" <?php echo ($old['scope_type'] ?? 'all') === 'all' ? 'selected' : ''; ?>>ALL YEARS</option>
+                <option value="year" <?php echo ($old['scope_type'] ?? '') === 'year' ? 'selected' : ''; ?>>SINGLE YEAR</option>
+                <option value="multi" <?php echo ($old['scope_type'] ?? '') === 'multi' ? 'selected' : ''; ?>>MULTIPLE YEARS</option>
+            </select>
+        </div>
+        <div id="create-scope-years" class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">YEAR LEVELS</label>
+            <div class="flex flex-wrap gap-3 text-xs font-bold uppercase">
+                <?php
+                    $oldYears = $old['scope_years'] ?? [];
+                    if (!is_array($oldYears)) {
+                        $oldYears = array_filter(explode(',', (string) $oldYears));
+                    }
+                ?>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="1" <?php echo in_array('1', $oldYears, true) ? 'checked' : ''; ?>>1</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="2" <?php echo in_array('2', $oldYears, true) ? 'checked' : ''; ?>>2</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="3" <?php echo in_array('3', $oldYears, true) ? 'checked' : ''; ?>>3</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="4" <?php echo in_array('4', $oldYears, true) ? 'checked' : ''; ?>>4</label>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">PROOF TYPE</label>
+            <select name="proof_type" class="border-2 border-black p-2 focus:outline-none focus:border-primary">
+                <option value="text" <?php echo ($old['proof_type'] ?? 'text') === 'text' ? 'selected' : ''; ?>>TEXT</option>
+                <option value="image" <?php echo ($old['proof_type'] ?? '') === 'image' ? 'selected' : ''; ?>>SINGLE IMAGE</option>
+                <option value="image_text" <?php echo ($old['proof_type'] ?? '') === 'image_text' ? 'selected' : ''; ?>>IMAGE + TEXT</option>
+                <option value="multi_image" <?php echo ($old['proof_type'] ?? '') === 'multi_image' ? 'selected' : ''; ?>>MULTIPLE IMAGES</option>
+                <option value="none" <?php echo ($old['proof_type'] ?? '') === 'none' ? 'selected' : ''; ?>>NO PROOF</option>
+            </select>
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">POINTS</label>
             <input type="number" name="points" min="1" class="border-2 border-black p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['points'] ?? ''); ?>" required>
         </div>
@@ -142,6 +204,33 @@
             <input type="text" name="category" id="edit-category" class="border-2 border-black p-2 focus:outline-none focus:border-primary" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">SCOPE TYPE</label>
+            <select name="scope_type" id="edit-scope-type" class="border-2 border-black p-2 focus:outline-none focus:border-primary">
+                <option value="all">ALL YEARS</option>
+                <option value="year">SINGLE YEAR</option>
+                <option value="multi">MULTIPLE YEARS</option>
+            </select>
+        </div>
+        <div id="edit-scope-years" class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">YEAR LEVELS</label>
+            <div class="flex flex-wrap gap-3 text-xs font-bold uppercase">
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="1">1</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="2">2</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="3">3</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="scope_years[]" value="4">4</label>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">PROOF TYPE</label>
+            <select name="proof_type" id="edit-proof-type" class="border-2 border-black p-2 focus:outline-none focus:border-primary">
+                <option value="text">TEXT</option>
+                <option value="image">SINGLE IMAGE</option>
+                <option value="image_text">IMAGE + TEXT</option>
+                <option value="multi_image">MULTIPLE IMAGES</option>
+                <option value="none">NO PROOF</option>
+            </select>
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">POINTS</label>
             <input type="number" name="points" id="edit-points" min="1" class="border-2 border-black p-2 focus:outline-none focus:border-primary" required>
         </div>
@@ -169,6 +258,8 @@
         document.getElementById('edit-title').value = quest.title;
         document.getElementById('edit-description').value = quest.description;
         document.getElementById('edit-category').value = quest.category;
+        document.getElementById('edit-scope-type').value = quest.scope_type || 'all';
+        document.getElementById('edit-proof-type').value = quest.proof_type || 'text';
         document.getElementById('edit-points').value = quest.points;
         
         // Format deadline for datetime-local input (YYYY-MM-DDThh:mm)
@@ -177,6 +268,13 @@
         document.getElementById('edit-deadline').value = deadline.toISOString().slice(0,16);
         
         document.getElementById('edit-status').value = quest.status;
+
+        var yearValues = (quest.scope_years || '').toString().split(',').map(y => y.trim()).filter(Boolean);
+        document.querySelectorAll('#edit-scope-years input[type=checkbox]').forEach((checkbox) => {
+            checkbox.checked = yearValues.includes(checkbox.value);
+        });
+
+        applyScopeType('edit-scope-type', 'edit-scope-years');
         
         // Change form action to include ID if needed, or just submit it.
         // Wait, the original controller uses `/admin/editQuest/{id}`. We can append it or use POST hidden field.
@@ -185,15 +283,67 @@
         openModal('edit-quest-modal');
     }
 
+    function applyScopeType(selectId, yearsId) {
+        var select = document.getElementById(selectId);
+        var yearsContainer = document.getElementById(yearsId);
+        if (!select || !yearsContainer) {
+            return;
+        }
+
+        if (select.value === 'all') {
+            yearsContainer.classList.add('hidden');
+        } else {
+            yearsContainer.classList.remove('hidden');
+        }
+    }
+
+    function bindScopeHandlers(selectId, yearsId) {
+        var select = document.getElementById(selectId);
+        var yearsContainer = document.getElementById(yearsId);
+        if (!select || !yearsContainer) {
+            return;
+        }
+
+        select.addEventListener('change', () => {
+            if (select.value === 'all') {
+                yearsContainer.querySelectorAll('input[type=checkbox]').forEach((checkbox) => {
+                    checkbox.checked = false;
+                });
+            }
+            applyScopeType(selectId, yearsId);
+        });
+
+        yearsContainer.addEventListener('change', (event) => {
+            if (select.value !== 'year' || event.target.type !== 'checkbox') {
+                return;
+            }
+            yearsContainer.querySelectorAll('input[type=checkbox]').forEach((checkbox) => {
+                if (checkbox !== event.target) {
+                    checkbox.checked = false;
+                }
+            });
+        });
+
+        applyScopeType(selectId, yearsId);
+    }
+
     <?php if (!empty($open_create_modal)): ?>
         window.addEventListener('DOMContentLoaded', () => { openModal('create-quest-modal'); });
     <?php endif; ?>
     <?php if (!empty($open_edit_modal)): ?>
-        window.addEventListener('DOMContentLoaded', () => { 
-            // We'd ideally pre-fill it or the user will see it from $old, but let's just open it.
-            openModal('edit-quest-modal'); 
+        window.addEventListener('DOMContentLoaded', () => {
+            <?php if (!empty($quest)): ?>
+                openEditModal(<?php echo json_encode($quest); ?>);
+            <?php else: ?>
+                openModal('edit-quest-modal');
+            <?php endif; ?>
         });
     <?php endif; ?>
+
+    window.addEventListener('DOMContentLoaded', () => {
+        bindScopeHandlers('create-scope-type', 'create-scope-years');
+        bindScopeHandlers('edit-scope-type', 'edit-scope-years');
+    });
 </script>
 
 <?php require_once '../app/views/layouts/footer.php'; ?>

@@ -6,6 +6,8 @@ class AdminController extends Controller {
     private $redemptionModel;
     private $userModel;
     private $auditLogModel;
+    private $acceptanceModel;
+    private $penaltyModel;
 
     public function __construct() {
         $this->questModel = new Quest();
@@ -14,6 +16,8 @@ class AdminController extends Controller {
         $this->redemptionModel = new Redemption();
         $this->userModel = new User();
         $this->auditLogModel = new AuditLog();
+        $this->acceptanceModel = new Acceptance();
+        $this->penaltyModel = new Penalty();
     }
 
     public function index() {
@@ -42,6 +46,9 @@ class AdminController extends Controller {
                 'title' => '',
                 'description' => '',
                 'category' => '',
+                'scope_type' => 'all',
+                'scope_years' => [],
+                'proof_type' => 'text',
                 'points' => '',
                 'deadline' => '',
                 'status' => 'active'
@@ -55,6 +62,9 @@ class AdminController extends Controller {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $category = trim($_POST['category'] ?? '');
+        $scopeType = $_POST['scope_type'] ?? 'all';
+        $scopeYears = $_POST['scope_years'] ?? [];
+        $proofType = $_POST['proof_type'] ?? 'text';
         $pointsRaw = $_POST['points'] ?? '';
         $deadlineRaw = trim($_POST['deadline'] ?? '');
         $status = $_POST['status'] ?? 'active';
@@ -63,6 +73,9 @@ class AdminController extends Controller {
             'title' => $title,
             'description' => $description,
             'category' => $category,
+            'scope_type' => $scopeType,
+            'scope_years' => is_array($scopeYears) ? $scopeYears : [],
+            'proof_type' => $proofType,
             'points' => $pointsRaw,
             'deadline' => $deadlineRaw,
             'status' => $status
@@ -71,6 +84,8 @@ class AdminController extends Controller {
         $points = (int) $pointsRaw;
         $deadline = $this->normalizeDeadline($deadlineRaw);
         $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+        $scopeResult = $this->normalizeScope($scopeType, $scopeYears);
+        $proofType = $this->normalizeProofType($proofType);
 
         if ($title === '' || $description === '' || $category === '' || $deadlineRaw === '') {
             $data['error'] = 'All fields are required.';
@@ -78,11 +93,16 @@ class AdminController extends Controller {
             $data['error'] = 'Points must be greater than zero.';
         } elseif ($deadline === null) {
             $data['error'] = 'Please enter a valid deadline.';
+        } elseif ($scopeResult['error'] !== '') {
+            $data['error'] = $scopeResult['error'];
         } else {
             $created = $this->questModel->create([
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
+                'scope_type' => $scopeResult['scope_type'],
+                'scope_years' => $scopeResult['scope_years'],
+                'proof_type' => $proofType,
                 'points' => $points,
                 'deadline' => $deadline,
                 'status' => $status,
@@ -133,6 +153,9 @@ class AdminController extends Controller {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $category = trim($_POST['category'] ?? '');
+        $scopeType = $_POST['scope_type'] ?? $quest['scope_type'];
+        $scopeYears = $_POST['scope_years'] ?? [];
+        $proofType = $_POST['proof_type'] ?? $quest['proof_type'];
         $pointsRaw = $_POST['points'] ?? '';
         $deadlineRaw = trim($_POST['deadline'] ?? $quest['deadline_input']);
         $status = $_POST['status'] ?? $quest['status'];
@@ -140,12 +163,17 @@ class AdminController extends Controller {
         $points = (int) $pointsRaw;
         $deadline = $this->normalizeDeadline($deadlineRaw);
         $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+        $scopeResult = $this->normalizeScope($scopeType, $scopeYears);
+        $proofType = $this->normalizeProofType($proofType);
 
         $data['quest'] = [
             'quest_id' => $quest['quest_id'],
             'title' => $title,
             'description' => $description,
             'category' => $category,
+            'scope_type' => $scopeType,
+            'scope_years' => is_array($scopeYears) ? $scopeYears : [],
+            'proof_type' => $proofType,
             'points' => $pointsRaw,
             'deadline_input' => $deadlineRaw,
             'status' => $status
@@ -157,11 +185,16 @@ class AdminController extends Controller {
             $data['error'] = 'Points must be greater than zero.';
         } elseif ($deadline === null) {
             $data['error'] = 'Please enter a valid deadline.';
+        } elseif ($scopeResult['error'] !== '') {
+            $data['error'] = $scopeResult['error'];
         } else {
             $updated = $this->questModel->update($questId, [
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
+                'scope_type' => $scopeResult['scope_type'],
+                'scope_years' => $scopeResult['scope_years'],
+                'proof_type' => $proofType,
                 'points' => $points,
                 'deadline' => $deadline,
                 'status' => $status
@@ -213,8 +246,13 @@ class AdminController extends Controller {
         $this->requireAdmin();
 
         $submissions = $this->submissionModel->getAllForAdmin();
+        $submissionIds = array_map(function ($submission) {
+            return (int) $submission['submission_id'];
+        }, $submissions);
+        $files = $this->submissionModel->getFilesBySubmissionIds($submissionIds);
         $this->view('admin/submissions/index', [
-            'submissions' => $submissions
+            'submissions' => $submissions,
+            'submission_files' => $files
         ]);
     }
 
@@ -236,6 +274,12 @@ class AdminController extends Controller {
 
         $result = $this->submissionModel->review($submissionId, $status, $remarks, $_SESSION['user_id']);
         if ($result['success']) {
+            if ($status === 'approved') {
+                $submission = $this->submissionModel->getById($submissionId);
+                if ($submission) {
+                    $this->acceptanceModel->markCompleted($submission['user_id'], $submission['quest_id']);
+                }
+            }
             $this->auditLogModel->create(
                 $_SESSION['user_id'],
                 'submission_review',
@@ -465,6 +509,64 @@ class AdminController extends Controller {
         ]);
     }
 
+    public function penalties() {
+        $this->requireAdmin();
+
+        $penalties = $this->penaltyModel->getAll();
+        $students = $this->userModel->getStudents();
+
+        $this->view('admin/penalties/index', [
+            'penalties' => $penalties,
+            'students' => $students
+        ]);
+    }
+
+    public function createPenalty() {
+        $this->requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/penalties');
+        }
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        $pointsRaw = $_POST['points_deducted'] ?? '';
+        $reason = trim($_POST['reason'] ?? '');
+
+        $data = [
+            'error' => '',
+            'penalties' => $this->penaltyModel->getAll(),
+            'students' => $this->userModel->getStudents(),
+            'open_create_modal' => true
+        ];
+
+        $points = (int) $pointsRaw;
+
+        if ($userId <= 0 || $reason === '') {
+            $data['error'] = 'Student and reason are required.';
+        } elseif ($points <= 0) {
+            $data['error'] = 'Points deducted must be greater than zero.';
+        } else {
+            $result = $this->penaltyModel->create($userId, $points, $reason, $_SESSION['user_id']);
+            if ($result['success']) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'penalty_create',
+                    'Deducted ' . $points . ' points from user ' . $userId
+                );
+                $this->redirect('admin/penalties?success=created');
+                return;
+            }
+
+            if (($result['error'] ?? '') === 'insufficient_points') {
+                $data['error'] = 'Student does not have enough points for this penalty.';
+            } else {
+                $data['error'] = 'Failed to apply penalty. Please try again.';
+            }
+        }
+
+        $this->view('admin/penalties/index', $data);
+    }
+
     public function students() {
         $this->requireAdmin();
 
@@ -484,7 +586,8 @@ class AdminController extends Controller {
             'old' => [
                 'full_name' => '',
                 'student_id' => '',
-                'email' => ''
+                'email' => '',
+                'year_level' => ''
             ]
         ];
 
@@ -495,17 +598,22 @@ class AdminController extends Controller {
         $fullName = trim($_POST['full_name'] ?? '');
         $studentId = trim($_POST['student_id'] ?? '');
         $email = trim($_POST['email'] ?? '');
+        $yearLevelRaw = trim($_POST['year_level'] ?? '');
+        $yearLevel = $this->normalizeYearLevel($yearLevelRaw);
 
         $data['old'] = [
             'full_name' => $fullName,
             'student_id' => $studentId,
-            'email' => $email
+            'email' => $email,
+            'year_level' => $yearLevelRaw
         ];
 
-        if ($fullName === '' || $studentId === '' || $email === '') {
-            $data['error'] = 'Full name, student ID, and email are required.';
+        if ($fullName === '' || $studentId === '' || $email === '' || $yearLevelRaw === '') {
+            $data['error'] = 'Full name, student ID, year level, and email are required.';
         } elseif (!$this->isValidStudentId($studentId)) {
             $data['error'] = 'Student ID format is invalid. Use 241c-1234.';
+        } elseif ($yearLevel === null) {
+            $data['error'] = 'Year level must be between 1 and 4.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $data['error'] = 'Please enter a valid email address.';
         } elseif ($this->userModel->findByEmail($email)) {
@@ -518,10 +626,12 @@ class AdminController extends Controller {
             $created = $this->userModel->create([
                 'full_name' => $fullName,
                 'student_id' => $studentId,
+                'year_level' => $yearLevel,
                 'email' => $email,
                 'password' => $passwordHash,
                 'role' => 'student',
-                'must_change_password' => 1
+                'must_change_password' => 1,
+                'is_active' => 1
             ]);
 
             if ($created) {
@@ -532,7 +642,7 @@ class AdminController extends Controller {
                 );
                 $data['success'] = 'Student account created. Share the password below with the student.';
                 $data['generated_password'] = $plainPassword;
-                $data['old'] = ['full_name' => '', 'email' => ''];
+                $data['old'] = ['full_name' => '', 'email' => '', 'student_id' => '', 'year_level' => ''];
             } else {
                 $data['error'] = 'Failed to create student account. Please try again.';
             }
@@ -541,6 +651,106 @@ class AdminController extends Controller {
         $data['students'] = $this->userModel->getStudents();
         $data['open_create_modal'] = true;
         $this->view('admin/students/index', $data);
+    }
+
+    public function editStudent($userId = null) {
+        $this->requireAdmin();
+
+        if ($userId === null) {
+            $userId = $_POST['user_id'] ?? null;
+        }
+
+        if ($userId === null || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/students');
+        }
+
+        $student = $this->userModel->getById($userId);
+        if (!$student || ($student['role'] ?? '') !== 'student') {
+            $this->redirect('admin/students');
+        }
+
+        $fullName = trim($_POST['full_name'] ?? '');
+        $studentId = trim($_POST['student_id'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $yearLevelRaw = trim($_POST['year_level'] ?? '');
+        $yearLevel = $this->normalizeYearLevel($yearLevelRaw);
+        $isActive = isset($_POST['is_active']) ? (int) $_POST['is_active'] : (int) ($student['is_active'] ?? 1);
+
+        $data = [
+            'error' => '',
+            'students' => $this->userModel->getStudents(),
+            'open_edit_modal' => true,
+            'student' => [
+                'user_id' => $userId,
+                'full_name' => $fullName,
+                'student_id' => $studentId,
+                'email' => $email,
+                'year_level' => $yearLevelRaw,
+                'is_active' => $isActive
+            ]
+        ];
+
+        if ($fullName === '' || $studentId === '' || $email === '' || $yearLevelRaw === '') {
+            $data['error'] = 'Full name, student ID, year level, and email are required.';
+        } elseif (!$this->isValidStudentId($studentId)) {
+            $data['error'] = 'Student ID format is invalid. Use 241c-1234.';
+        } elseif ($yearLevel === null) {
+            $data['error'] = 'Year level must be between 1 and 4.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $data['error'] = 'Please enter a valid email address.';
+        } elseif ($this->userModel->emailExistsForOther($email, $userId)) {
+            $data['error'] = 'Email is already registered.';
+        } elseif ($this->userModel->studentIdExistsForOther($studentId, $userId)) {
+            $data['error'] = 'Student ID is already registered.';
+        } else {
+            $updated = $this->userModel->updateStudent($userId, [
+                'full_name' => $fullName,
+                'student_id' => $studentId,
+                'email' => $email,
+                'year_level' => $yearLevel,
+                'is_active' => $isActive
+            ]);
+
+            if ($updated) {
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'student_update',
+                    'Updated student account: ' . $fullName
+                );
+                $this->redirect('admin/students?success=updated');
+                return;
+            }
+            $data['error'] = 'Failed to update student account. Please try again.';
+        }
+
+        $this->view('admin/students/index', $data);
+    }
+
+    public function toggleStudentStatus() {
+        $this->requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/students');
+        }
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        $isActive = (int) ($_POST['is_active'] ?? 1);
+
+        if ($userId <= 0) {
+            $this->redirect('admin/students?error=invalid');
+        }
+
+        $updated = $this->userModel->setActive($userId, $isActive);
+        if ($updated) {
+            $this->auditLogModel->create(
+                $_SESSION['user_id'],
+                'student_status',
+                'Set student ' . $userId . ' active=' . $isActive
+            );
+            $this->redirect('admin/students?success=status');
+        }
+
+        $this->redirect('admin/students?error=failed');
     }
 
     private function requireAdmin() {
@@ -578,6 +788,48 @@ class AdminController extends Controller {
         }
 
         return date('Y-m-d\TH:i', $timestamp);
+    }
+
+    private function normalizeYearLevel($input) {
+        if ($input === '' || $input === null) {
+            return null;
+        }
+
+        $level = (int) $input;
+        if ($level < 1 || $level > 4) {
+            return null;
+        }
+
+        return $level;
+    }
+
+    private function normalizeScope($scopeType, $scopeYears) {
+        $allowedTypes = ['all', 'year', 'multi'];
+        $scopeType = in_array($scopeType, $allowedTypes, true) ? $scopeType : 'all';
+
+        $years = array_map('strval', (array) $scopeYears);
+        $years = array_values(array_unique(array_filter($years, function ($year) {
+            return in_array($year, ['1', '2', '3', '4'], true);
+        })));
+
+        if ($scopeType === 'all') {
+            return ['scope_type' => 'all', 'scope_years' => null, 'error' => ''];
+        }
+
+        if ($scopeType === 'year' && count($years) !== 1) {
+            return ['scope_type' => $scopeType, 'scope_years' => null, 'error' => 'Select exactly one year level for single-year scope.'];
+        }
+
+        if ($scopeType === 'multi' && count($years) < 1) {
+            return ['scope_type' => $scopeType, 'scope_years' => null, 'error' => 'Select at least one year level for multi-year scope.'];
+        }
+
+        return ['scope_type' => $scopeType, 'scope_years' => implode(',', $years), 'error' => ''];
+    }
+
+    private function normalizeProofType($proofType) {
+        $allowed = ['text', 'image', 'image_text', 'multi_image', 'none'];
+        return in_array($proofType, $allowed, true) ? $proofType : 'text';
     }
 
     private function generateSimplePassword($length = 8) {

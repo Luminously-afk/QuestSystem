@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>IT_QUEST_SYSTEM</title>
+    <title>IT ENGAGEMENT SYSTEM</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Lexend:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -133,6 +133,9 @@
             <a class="w-full flex items-center gap-4 p-4 text-black border-2 border-transparent font-mono font-bold uppercase hover:bg-zinc-100 transition-colors" href="<?php echo BASE_URL; ?>/admin/submissions">
                 <span class="material-symbols-outlined">fact_check</span> <span class="text-button-text">Reviews</span>
             </a>
+            <a class="w-full flex items-center gap-4 p-4 text-black border-2 border-transparent font-mono font-bold uppercase hover:bg-zinc-100 transition-colors" href="<?php echo BASE_URL; ?>/admin/penalties">
+                <span class="material-symbols-outlined">gavel</span> <span class="text-button-text">Penalties</span>
+            </a>
             <a class="w-full flex items-center gap-4 p-4 text-black border-2 border-transparent font-mono font-bold uppercase hover:bg-zinc-100 transition-colors" href="<?php echo BASE_URL; ?>/admin/rewards">
                 <span class="material-symbols-outlined">inventory_2</span> <span class="text-button-text">Rewards</span>
             </a>
@@ -174,7 +177,7 @@
     <header class="flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50 bg-[#FFD54F] border-b-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <div class="flex items-center gap-4">
             <span class="material-symbols-outlined text-black text-3xl">videogame_asset</span>
-            <a href="<?php echo BASE_URL; ?>/" class="text-2xl font-black text-black tracking-widest uppercase font-mono hover:text-black">IT QUEST</a>
+            <a href="<?php echo BASE_URL; ?>/" class="text-2xl font-black text-black tracking-widest uppercase font-mono hover:text-black">IT ENGAGEMENT</a>
         </div>
         <div class="flex items-center gap-6">
             <?php if (isset($_SESSION['user_id'])): ?>

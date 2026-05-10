@@ -5,6 +5,7 @@ class StudentController extends Controller {
     private $rewardModel;
     private $redemptionModel;
     private $userModel;
+    private $acceptanceModel;
 
     public function __construct() {
         $this->questModel = new Quest();
@@ -12,6 +13,7 @@ class StudentController extends Controller {
         $this->rewardModel = new Reward();
         $this->redemptionModel = new Redemption();
         $this->userModel = new User();
+        $this->acceptanceModel = new Acceptance();
     }
 
     public function index() {
@@ -27,10 +29,51 @@ class StudentController extends Controller {
     public function quests() {
         $this->requireStudent();
 
-        $quests = $this->questModel->getActiveWithStatus($_SESSION['user_id']);
+        $student = $this->userModel->getById($_SESSION['user_id']);
+        $yearLevel = $student['year_level'] ?? null;
+
+        $availableQuests = $this->questModel->getAvailableForStudent($_SESSION['user_id'], $yearLevel);
+        $acceptedQuests = $this->questModel->getAcceptedForStudent($_SESSION['user_id']);
         $this->view('student/quests/index', [
-            'quests' => $quests
+            'available_quests' => $availableQuests,
+            'accepted_quests' => $acceptedQuests
         ]);
+    }
+
+    public function acceptQuest($questId = null) {
+        $this->requireStudent();
+
+        if ($questId === null || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('student/quests');
+        }
+
+        $student = $this->userModel->getById($_SESSION['user_id']);
+        $yearLevel = $student['year_level'] ?? null;
+        $available = $this->questModel->getAvailableForStudent($_SESSION['user_id'], $yearLevel);
+
+        $isAvailable = false;
+        foreach ($available as $quest) {
+            if ((int)$quest['quest_id'] === (int)$questId) {
+                $isAvailable = true;
+                break;
+            }
+        }
+
+        if (!$isAvailable) {
+            $this->redirect('student/quests?error=not_available');
+        }
+
+        $existing = $this->acceptanceModel->getByUserQuest($_SESSION['user_id'], $questId);
+        if ($existing) {
+            $this->redirect('student/quests?error=already_accepted');
+        }
+
+        $accepted = $this->acceptanceModel->accept($_SESSION['user_id'], $questId);
+        if ($accepted) {
+            $this->redirect('student/quests?success=accepted');
+        }
+
+        $this->redirect('student/quests?error=failed');
     }
 
     public function submit($questId = null) {
@@ -45,34 +88,91 @@ class StudentController extends Controller {
             $this->redirect('student/quests');
         }
 
+        $acceptance = $this->acceptanceModel->getByUserQuest($_SESSION['user_id'], $questId);
+        if (!$acceptance || ($acceptance['status'] ?? '') !== 'accepted') {
+            $this->redirect('student/quests?error=not_accepted');
+        }
+
         $existing = $this->submissionModel->getByUserQuest($_SESSION['user_id'], $questId);
         $proofText = trim($_POST['proof_text'] ?? '');
+        $proofType = $quest['proof_type'] ?? 'text';
+
+        $uploadedFiles = $this->normalizeUploadedFiles($_FILES['proof_files'] ?? null);
 
         $data = [
             'error' => '',
-            'quests' => $this->questModel->getActiveWithStatus($_SESSION['user_id']),
+            'available_quests' => $this->questModel->getAvailableForStudent(
+                $_SESSION['user_id'],
+                ($this->userModel->getById($_SESSION['user_id'])['year_level'] ?? null)
+            ),
+            'accepted_quests' => $this->questModel->getAcceptedForStudent($_SESSION['user_id']),
             'open_submit_modal' => true,
             'submit_quest_id' => $questId,
             'proof_text' => $proofText
         ];
 
-        if ($proofText === '') {
-            $data['error'] = 'Proof text is required.';
-        } elseif ($existing && $existing['status'] !== 'rejected') {
+        if ($proofType === 'text' || $proofType === 'image_text') {
+            if ($proofText === '') {
+                $data['error'] = 'Proof text is required.';
+            }
+        }
+
+        if ($proofType === 'image' || $proofType === 'image_text') {
+            if (count($uploadedFiles) !== 1) {
+                $data['error'] = 'Please upload exactly one image.';
+            }
+        }
+
+        if ($proofType === 'multi_image') {
+            if (count($uploadedFiles) < 1) {
+                $data['error'] = 'Please upload at least one image.';
+            }
+        }
+
+        if ($proofType === 'none') {
+            $proofText = null;
+        }
+
+        if ($existing && $existing['status'] !== 'rejected') {
             $data['error'] = 'You already submitted this quest.';
-        } else {
+        }
+
+        if ($data['error'] === '') {
+            $submissionId = null;
             if ($existing && $existing['status'] === 'rejected') {
-                $saved = $this->submissionModel->resubmit($existing['submission_id'], $proofText);
+                $saved = $this->submissionModel->resubmit($existing['submission_id'], $proofType, $proofText ?: null);
+                $submissionId = $existing['submission_id'];
             } else {
-                $saved = $this->submissionModel->create($_SESSION['user_id'], $questId, $proofText);
+                $submissionId = $this->submissionModel->create(
+                    $_SESSION['user_id'],
+                    $questId,
+                    $proofType,
+                    $proofText ?: null
+                );
+                $saved = $submissionId !== false;
             }
 
             if ($saved) {
-                $this->redirect('student/submissions?success=submitted');
-                return;
+                if ($existing && $existing['status'] === 'rejected') {
+                    $this->removeSubmissionFiles($submissionId);
+                }
+
+                if (!empty($uploadedFiles) && in_array($proofType, ['image', 'image_text', 'multi_image'], true)) {
+                    $fileResult = $this->storeSubmissionFiles($submissionId, $uploadedFiles);
+                    if (!$fileResult['success']) {
+                        $data['error'] = $fileResult['error'];
+                    } else {
+                        $this->submissionModel->addFiles($submissionId, $fileResult['paths']);
+                    }
+                }
             } else {
                 $data['error'] = 'Submission failed. Please try again.';
             }
+        }
+
+        if ($data['error'] === '') {
+            $this->redirect('student/submissions?success=submitted');
+            return;
         }
 
         $this->view('student/quests/index', $data);
@@ -162,6 +262,13 @@ class StudentController extends Controller {
             $this->redirect('auth/login');
         }
 
+        $user = $this->userModel->getById($_SESSION['user_id']);
+        if (!$user || (int) ($user['is_active'] ?? 1) !== 1) {
+            session_unset();
+            session_destroy();
+            $this->redirect('auth/login?error=inactive');
+        }
+
         if (!empty($_SESSION['must_change_password'])) {
             $this->redirect('auth/changePassword?first=1');
         }
@@ -169,6 +276,78 @@ class StudentController extends Controller {
 
     private function isStudent() {
         return isset($_SESSION['user_id']) && ($_SESSION['role'] ?? '') === 'student';
+    }
+
+    private function normalizeUploadedFiles($files) {
+        $normalized = [];
+        if (!$files || empty($files['name']) || !is_array($files['name'])) {
+            return $normalized;
+        }
+
+        foreach ($files['name'] as $index => $name) {
+            if ($name === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'name' => $name,
+                'type' => $files['type'][$index] ?? '',
+                'tmp_name' => $files['tmp_name'][$index] ?? '',
+                'error' => $files['error'][$index] ?? UPLOAD_ERR_NO_FILE,
+                'size' => $files['size'][$index] ?? 0
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function storeSubmissionFiles($submissionId, $files) {
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/submissions';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $stored = [];
+
+        foreach ($files as $file) {
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                return ['success' => false, 'error' => 'Upload failed. Please try again.'];
+            }
+
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (!in_array($extension, $allowedExtensions, true)) {
+                return ['success' => false, 'error' => 'Only image files are allowed.'];
+            }
+
+            if (!is_uploaded_file($file['tmp_name'])) {
+                return ['success' => false, 'error' => 'Invalid upload detected.'];
+            }
+
+            $safeName = 'submission_' . $submissionId . '_' . uniqid('', true) . '.' . $extension;
+            $targetPath = $uploadDir . '/' . $safeName;
+            if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+                return ['success' => false, 'error' => 'Failed to save uploaded file.'];
+            }
+
+            $stored[] = 'uploads/submissions/' . $safeName;
+        }
+
+        return ['success' => true, 'paths' => $stored];
+    }
+
+    private function removeSubmissionFiles($submissionId) {
+        $files = $this->submissionModel->getFilesBySubmissionIds([$submissionId]);
+        if (!empty($files[$submissionId])) {
+            foreach ($files[$submissionId] as $path) {
+                $absolutePath = dirname(__DIR__, 2) . '/public/' . $path;
+                if (file_exists($absolutePath)) {
+                    unlink($absolutePath);
+                }
+            }
+        }
+
+        $this->submissionModel->deleteFiles($submissionId);
     }
 }
 ?>
