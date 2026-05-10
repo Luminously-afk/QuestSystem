@@ -23,8 +23,19 @@ class AdminController extends Controller {
     public function index() {
         $this->requireAdmin();
 
+        $stats = [
+            'total_quests' => $this->countTotalQuests(),
+            'active_quests' => $this->countActiveQuests(),
+            'pending_submissions' => $this->countPendingSubmissions(),
+            'pending_redemptions' => $this->countPendingRedemptions(),
+            'total_students' => $this->countTotalStudents(),
+            'active_students' => $this->countActiveStudents(),
+            'recent_penalties' => $this->countRecentPenalties()
+        ];
+
         $this->view('admin/index', [
-            'name' => $_SESSION['full_name'] ?? 'Admin'
+            'name' => $_SESSION['full_name'] ?? 'Admin',
+            'stats' => $stats
         ]);
     }
 
@@ -844,6 +855,83 @@ class AdminController extends Controller {
 
     private function isValidStudentId($value) {
         return preg_match('/^[A-Za-z0-9]{4}-\d{4}$/', $value) === 1;
+    }
+
+    private function countTotalQuests() {
+        $db = $this->get_db();
+        $stmt = $db->prepare("SELECT COUNT(*) as count FROM quests");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countActiveQuests() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM quests WHERE status = 'active' AND deadline >= NOW()"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countPendingSubmissions() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM quest_submissions WHERE status = 'pending'"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countPendingRedemptions() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM reward_redemptions WHERE status = 'pending'"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countTotalStudents() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM users WHERE role = 'student'"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countActiveStudents() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM users WHERE role = 'student' AND is_active = 1"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function countRecentPenalties() {
+        $db = $this->get_db();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count FROM penalties WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        );
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($result['count'] ?? 0);
+    }
+
+    private function get_db() {
+        if (!isset($this->db)) {
+            require_once '../app/config/database.php';
+            $database = new Database();
+            $this->db = $database->getConnection();
+        }
+        return $this->db;
     }
 }
 ?>
