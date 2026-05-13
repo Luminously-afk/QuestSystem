@@ -4,23 +4,23 @@
 <div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
     <span>ROOT</span>
     <span class="material-symbols-outlined text-xs">chevron_right</span>
-    <span class="text-black">LEADERBOARD</span>
+    <span class="text-on-surface">LEADERBOARD</span>
 </div>
 
 <div class="flex justify-between items-center mb-8">
     <h2 class="font-h1 text-h1 uppercase text-on-background">LEADERBOARD</h2>
 </div>
 
-<section class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-    <div class="p-4 border-b-4 border-black flex flex-wrap gap-4 justify-between items-center bg-zinc-50">
-        <h2 class="font-h2 text-black uppercase font-black">TOP PLAYERS</h2>
+<section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
+    <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
+        <h2 class="font-h2 text-on-surface uppercase font-black">TOP PLAYERS</h2>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($leaderboard)): ?>
             <div class="p-6 font-mono text-sm uppercase">No students found.</div>
         <?php else: ?>
             <table class="w-full text-left font-mono text-sm">
-                <thead class="bg-zinc-100 border-b-4 border-black">
+                <thead class="bg-surface-container border-b-4 border-on-surface">
                     <tr>
                         <th class="p-4 uppercase font-black w-24">RANK</th>
                         <th class="p-4 uppercase font-black">STUDENT</th>
@@ -31,19 +31,19 @@
                 <tbody>
                     <?php $rank = 1; ?>
                     <?php foreach ($leaderboard as $row): ?>
-                        <tr class="border-b-2 border-zinc-100 hover:bg-zinc-50 <?php echo $rank <= 3 ? 'bg-[#ffdad6]/20' : ''; ?>">
-                            <td class="p-4 font-black text-2xl text-black">
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low <?php echo $rank <= 3 ? 'bg-error-container/20' : ''; ?>">
+                            <td class="p-4 font-black text-2xl text-on-surface">
                                 <?php if ($rank === 1): ?>
-                                    <span class="text-[#FFD54F]">1</span><span class="material-symbols-outlined text-[#FFD54F] align-middle ml-1">military_tech</span>
+                                    <span class="text-primary">1</span><span class="material-symbols-outlined text-primary align-middle ml-1">military_tech</span>
                                 <?php elseif ($rank === 2): ?>
-                                    <span class="text-zinc-400">2</span><span class="material-symbols-outlined text-zinc-400 align-middle ml-1">military_tech</span>
+                                    <span class="text-outline">2</span><span class="material-symbols-outlined text-outline align-middle ml-1">military_tech</span>
                                 <?php elseif ($rank === 3): ?>
                                     <span class="text-amber-700">3</span><span class="material-symbols-outlined text-amber-700 align-middle ml-1">military_tech</span>
                                 <?php else: ?>
                                     <?php echo $rank; ?>
                                 <?php endif; ?>
                             </td>
-                            <td class="p-4 font-bold text-black uppercase text-lg"><?php echo htmlspecialchars($row['full_name']); ?></td>
+                            <td class="p-4 font-bold text-on-surface uppercase text-lg"><?php echo htmlspecialchars($row['full_name']); ?></td>
                             <td class="p-4 text-primary font-black text-xl text-right"><?php echo htmlspecialchars($row['total_points']); ?> XP</td>
                             <td class="p-4 text-secondary font-black text-right"><?php echo htmlspecialchars($row['completed_count']); ?></td>
                         </tr>

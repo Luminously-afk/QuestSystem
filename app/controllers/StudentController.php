@@ -304,7 +304,8 @@ class StudentController extends Controller {
     private function storeSubmissionFiles($submissionId, $files) {
         $uploadDir = dirname(__DIR__, 2) . '/public/uploads/submissions';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0775, true);
+            mkdir($uploadDir, 0777, true);
+            chmod($uploadDir, 0777);
         }
 
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];

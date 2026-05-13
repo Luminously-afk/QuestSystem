@@ -4,23 +4,23 @@
 <div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
     <span>ROOT</span>
     <span class="material-symbols-outlined text-xs">chevron_right</span>
-    <span class="text-black">AUDIT LOGS</span>
+    <span class="text-on-surface">AUDIT LOGS</span>
 </div>
 
 <div class="flex justify-between items-center mb-8">
     <h2 class="font-h1 text-h1 uppercase text-on-background">SYSTEM AUDIT LOGS</h2>
 </div>
 
-<section class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-    <div class="p-4 border-b-4 border-black flex flex-wrap gap-4 justify-between items-center bg-zinc-50">
-        <h2 class="font-h2 text-black uppercase font-black">ADMINISTRATIVE ACTIONS</h2>
+<section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
+    <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
+        <h2 class="font-h2 text-on-surface uppercase font-black">ADMINISTRATIVE ACTIONS</h2>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($logs)): ?>
             <div class="p-6 font-mono text-sm uppercase">No logs recorded yet.</div>
         <?php else: ?>
             <table class="w-full text-left font-mono text-sm">
-                <thead class="bg-zinc-100 border-b-4 border-black">
+                <thead class="bg-surface-container border-b-4 border-on-surface">
                     <tr>
                         <th class="p-4 uppercase font-black">ADMIN</th>
                         <th class="p-4 uppercase font-black">ACTION</th>
@@ -30,10 +30,10 @@
                 </thead>
                 <tbody>
                     <?php foreach ($logs as $log): ?>
-                        <tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
-                            <td class="p-4 font-bold text-black uppercase"><?php echo htmlspecialchars($log['full_name'] ?? 'Unknown'); ?></td>
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
+                            <td class="p-4 font-bold text-on-surface uppercase"><?php echo htmlspecialchars($log['full_name'] ?? 'Unknown'); ?></td>
                             <td class="p-4">
-                                <span class="px-2 py-1 text-[10px] border border-black font-black uppercase bg-[#ffd54f] text-black">
+                                <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase bg-[#ffd54f] text-on-surface">
                                     <?php echo htmlspecialchars($log['action']); ?>
                                 </span>
                             </td>

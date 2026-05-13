@@ -145,3 +145,106 @@ END;
 //
 
 DELIMITER ;
+
+-- --------------------------------------------------------
+-- SQL VIEW
+-- --------------------------------------------------------
+CREATE OR REPLACE VIEW vw_student_leaderboard AS
+SELECT 
+    u.user_id, 
+    u.full_name, 
+    u.student_id,
+    u.year_level,
+    u.total_points,
+    COUNT(s.submission_id) AS completed_quests
+FROM users u
+LEFT JOIN quest_submissions s ON u.user_id = s.user_id AND s.status = 'approved'
+WHERE u.role = 'student' AND u.is_active = 1
+GROUP BY u.user_id
+ORDER BY u.total_points DESC, completed_quests DESC;
+
+-- --------------------------------------------------------
+-- SQL STORED PROCEDURE WITH TRANSACTION (ACID)
+-- --------------------------------------------------------
+DELIMITER //
+
+CREATE PROCEDURE sp_deduct_penalty(
+    IN p_user_id INT,
+    IN p_points_deducted INT,
+    IN p_reason TEXT,
+    IN p_admin_id INT
+)
+BEGIN
+    -- Declare variables for transaction exception handling
+    DECLARE exit handler for sqlexception
+    BEGIN
+        -- Rollback if there is any error (Atomicity)
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    -- Start Transaction
+    START TRANSACTION;
+
+    -- 1. Insert into penalties table
+    INSERT INTO penalties (user_id, points_deducted, reason, created_by, created_at)
+    VALUES (p_user_id, p_points_deducted, p_reason, p_admin_id, CURRENT_TIMESTAMP);
+
+    -- 2. Deduct points from user
+    UPDATE users 
+    SET total_points = total_points - p_points_deducted
+    WHERE user_id = p_user_id;
+
+    -- 3. Log the action
+    INSERT INTO audit_logs (admin_id, action, description)
+    VALUES (p_admin_id, 'PENALTY_ISSUED', CONCAT('Deducted ', p_points_deducted, ' points from user ID: ', p_user_id, '. Reason: ', p_reason));
+
+    -- Commit transaction if all steps succeed
+    COMMIT;
+END;
+//
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+-- DATABASE USERS & PRIVILEGES (Security & Least Privilege)
+-- --------------------------------------------------------
+
+-- 1. Create the Student App User
+CREATE USER IF NOT EXISTS 'quest_student_user'@'localhost' IDENTIFIED BY 'student_secure_pass123';
+-- Students can only read general data
+GRANT SELECT ON it_quest.quests TO 'quest_student_user'@'localhost';
+GRANT SELECT ON it_quest.rewards TO 'quest_student_user'@'localhost';
+GRANT SELECT ON it_quest.vw_student_leaderboard TO 'quest_student_user'@'localhost';
+GRANT SELECT ON it_quest.penalties TO 'quest_student_user'@'localhost';
+-- Students can read and update their own user record (handled by app logic, but DB needs UPDATE)
+GRANT SELECT, UPDATE ON it_quest.users TO 'quest_student_user'@'localhost';
+-- Students can submit quests and claim rewards
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submissions TO 'quest_student_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submission_files TO 'quest_student_user'@'localhost';
+GRANT SELECT, INSERT ON it_quest.reward_redemptions TO 'quest_student_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON it_quest.quest_acceptances TO 'quest_student_user'@'localhost';
+
+-- 2. Create the Admin App User
+CREATE USER IF NOT EXISTS 'quest_admin_user'@'localhost' IDENTIFIED BY 'admin_secure_pass123';
+-- Admins have full CRUD on operational tables
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quests TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.rewards TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.users TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submissions TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submission_files TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.reward_redemptions TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_acceptances TO 'quest_admin_user'@'localhost';
+-- Admins can view and insert penalties (via procedure) and audit logs
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.penalties TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT ON it_quest.audit_logs TO 'quest_admin_user'@'localhost';
+GRANT EXECUTE ON PROCEDURE it_quest.sp_deduct_penalty TO 'quest_admin_user'@'localhost';
+GRANT SELECT ON it_quest.vw_student_leaderboard TO 'quest_admin_user'@'localhost';
+
+-- Apply changes
+FLUSH PRIVILEGES;
+
+-- --------------------------------------------------------
+-- DEFAULT APPLICATION USERS (App-level authentication)
+-- Password for both is 'password123'
+-- --------------------------------------------------------

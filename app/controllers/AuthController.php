@@ -59,6 +59,8 @@ class AuthController extends Controller {
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['full_name'] = $user['full_name'];
                     $_SESSION['role'] = $user['role'];
+                    $_SESSION['student_id'] = $user['student_id'] ?? null;
+                    $_SESSION['year_level'] = $user['year_level'] ?? null;
                     $_SESSION['must_change_password'] = (int) ($user['must_change_password'] ?? 0) === 1;
 
                     if ($_SESSION['must_change_password']) {

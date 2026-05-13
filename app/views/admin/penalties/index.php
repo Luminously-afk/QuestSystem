@@ -4,38 +4,38 @@
 <div class="mb-8 font-mono text-xs font-bold uppercase flex items-center gap-2 text-secondary">
     <span>ROOT</span>
     <span class="material-symbols-outlined text-xs">chevron_right</span>
-    <span class="text-black">PENALTIES</span>
+    <span class="text-on-surface">PENALTIES</span>
 </div>
 
 <div class="flex justify-between items-center mb-8">
     <h2 class="font-h1 text-h1 uppercase text-on-background">POINT PENALTIES</h2>
-    <button onclick="openModal('create-penalty-modal')" class="bg-[#FFD54F] text-black border-4 border-black px-4 py-2 font-button-text hover:bg-zinc-100 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
+    <button onclick="openModal('create-penalty-modal')" class="bg-primary text-on-surface border-2 border-on-surface px-4 py-2 font-button-text hover:bg-surface-container active:translate-y-1 pixel-shadow-sm uppercase">
         ADD PENALTY
     </button>
 </div>
 
 <?php if (isset($_GET['success']) && $_GET['success'] === 'created'): ?>
-    <div class="bg-[#9aed83] border-4 border-black p-4 mb-8 font-mono font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+    <div class="bg-[#9aed83] border-2 border-on-surface p-4 mb-8 font-mono font-bold uppercase pixel-shadow-sm text-on-surface">
         Penalty recorded successfully.
     </div>
 <?php endif; ?>
 
 <?php if (!empty($error)): ?>
-    <div class="bg-[#ffdad6] border-4 border-black p-4 mb-8 font-mono font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+    <div class="bg-error-container border-2 border-on-surface p-4 mb-8 font-mono font-bold uppercase pixel-shadow-sm text-on-surface">
         <?php echo htmlspecialchars($error); ?>
     </div>
 <?php endif; ?>
 
-<section class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-    <div class="p-4 border-b-4 border-black flex flex-wrap gap-4 justify-between items-center bg-zinc-50">
-        <h2 class="font-h2 text-black uppercase font-black">PENALTY LOG</h2>
+<section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
+    <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
+        <h2 class="font-h2 text-on-surface uppercase font-black">PENALTY LOG</h2>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($penalties)): ?>
             <div class="p-6 font-mono text-sm uppercase">No penalties recorded.</div>
         <?php else: ?>
             <table class="w-full text-left font-mono text-sm">
-                <thead class="bg-zinc-100 border-b-4 border-black">
+                <thead class="bg-surface-container border-b-4 border-on-surface">
                     <tr>
                         <th class="p-4 uppercase font-black">STUDENT</th>
                         <th class="p-4 uppercase font-black">POINTS</th>
@@ -46,9 +46,9 @@
                 </thead>
                 <tbody>
                     <?php foreach ($penalties as $penalty): ?>
-                        <tr class="border-b-2 border-zinc-100 hover:bg-zinc-50">
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
                             <td class="p-4">
-                                <div class="font-bold uppercase text-black"><?php echo htmlspecialchars($penalty['full_name']); ?></div>
+                                <div class="font-bold uppercase text-on-surface"><?php echo htmlspecialchars($penalty['full_name']); ?></div>
                                 <div class="text-xs text-secondary mt-1 lowercase"><?php echo htmlspecialchars($penalty['email']); ?></div>
                             </td>
                             <td class="p-4 text-error font-black">-<?php echo htmlspecialchars($penalty['points_deducted']); ?> XP</td>
@@ -72,15 +72,15 @@
 </section>
 
 <!-- Create Penalty Dialog -->
-<dialog id="create-penalty-modal" class="bg-white border-4 border-black p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
-    <div class="bg-[#FFD54F] border-b-4 border-black p-4 flex justify-between items-center">
-        <h2 class="font-h2 text-black uppercase">ADD PENALTY</h2>
-        <button onclick="closeModal('create-penalty-modal')" class="text-black hover:text-white"><span class="material-symbols-outlined">close</span></button>
+<dialog id="create-penalty-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
+    <div class="bg-primary border-b-4 border-on-surface p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-on-surface uppercase">ADD PENALTY</h2>
+        <button onclick="closeModal('create-penalty-modal')" class="text-on-surface hover:text-white"><span class="material-symbols-outlined">close</span></button>
     </div>
     <form method="post" action="<?php echo BASE_URL; ?>/admin/createPenalty" class="p-6 flex flex-col gap-4 font-mono">
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">STUDENT</label>
-            <select name="user_id" class="border-2 border-black p-2 focus:outline-none focus:border-primary" required>
+            <select name="user_id" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
                 <option value="">SELECT STUDENT</option>
                 <?php foreach ($students as $student): ?>
                     <option value="<?php echo htmlspecialchars($student['user_id']); ?>">
@@ -91,15 +91,15 @@
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">POINTS DEDUCTED</label>
-            <input type="number" name="points_deducted" min="1" class="border-2 border-black p-2 focus:outline-none focus:border-primary" required>
+            <input type="number" name="points_deducted" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">REASON</label>
-            <textarea name="reason" rows="4" class="border-2 border-black p-2 focus:outline-none focus:border-primary" required></textarea>
+            <textarea name="reason" rows="4" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required></textarea>
         </div>
         <div class="flex gap-4 mt-4">
-            <button type="button" onclick="closeModal('create-penalty-modal')" class="flex-1 bg-zinc-200 border-2 border-black p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
-            <button type="submit" class="flex-1 bg-[#9aed83] border-2 border-black p-3 font-button-text hover:bg-[#88da73]">SAVE</button>
+            <button type="button" onclick="closeModal('create-penalty-modal')" class="flex-1 bg-zinc-200 border-2 border-on-surface p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
+            <button type="submit" class="flex-1 bg-[#9aed83] border-2 border-on-surface p-3 font-button-text hover:bg-tertiary-fixed">SAVE</button>
         </div>
     </form>
 </dialog>

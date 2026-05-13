@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed-variant": "#31447b",
+                      "on-secondary-fixed": "#00174b",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "surface-variant": "#e1e2ed",
+                      "surface-container": "#ededf9",
+                      "on-tertiary-fixed": "#360f00",
+                      "primary-container": "#2563eb",
+                      "on-surface-variant": "#434655",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f3f3fe",
+                      "on-surface": "#191b23",
+                      "secondary-fixed": "#dbe1ff",
+                      "inverse-primary": "#b4c5ff",
+                      "inverse-on-surface": "#f0f0fb",
+                      "on-secondary-container": "#394c84",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "outline": "#737686",
+                      "primary-fixed": "#dbe1ff",
+                      "tertiary": "#943700",
+                      "inverse-surface": "#2e3039",
+                      "background": "#faf8ff",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "primary": "#004ac6",
+                      "tertiary-fixed": "#ffdbcd",
+                      "surface-container-high": "#e7e7f3",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#0053db",
+                      "surface-dim": "#d9d9e5",
+                      "on-error": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-container": "#ffede6",
+                      "error": "#ba1a1a",
+                      "on-primary-fixed": "#00174b",
+                      "secondary-container": "#acbfff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-container": "#eeefff",
+                      "surface-bright": "#faf8ff",
+                      "tertiary-container": "#bc4800",
+                      "on-secondary": "#ffffff",
+                      "secondary": "#495c95",
+                      "on-background": "#191b23",
+                      "outline-variant": "#c3c6d7"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "sm": "8px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "xl": "40px",
+                      "xs": "4px",
+                      "margin": "32px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Space Grotesk"],
+                      "section-title": ["Inter"],
+                      "headline-md": ["Space Grotesk"],
+                      "display-xl": ["Space Grotesk"],
+                      "body-md": ["Inter"],
+                      "label-pixel": ["JetBrains Mono"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "section-title": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1em", "fontWeight": "800"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "display-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-pixel": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .pixel-border {
+            box-shadow: 4px 4px 0px 0px rgba(0, 74, 198, 1);
+        }
+        .pixel-border-sm {
+            box-shadow: 2px 2px 0px 0px rgba(0, 74, 198, 1);
+        }
+        .step-gradient {
+            background: linear-gradient(90deg, #004ac6 0%, #004ac6 20%, #2563eb 20%, #2563eb 40%, #acbfff 40%, #acbfff 60%, #e1e2ed 60%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md flex min-h-screen">
+<!-- SideNavBar Shell -->
+<aside class="hidden md:flex flex-col h-screen py-md gap-unit sticky top-0 z-50 bg-surface-container-low border-r-2 border-on-surface w-64 flex-shrink-0">
+<div class="px-md mb-xl">
+<h1 class="font-headline-sm text-headline-sm font-black uppercase text-primary">TECH COMMAND</h1>
+<p class="font-label-pixel text-label-pixel text-on-surface-variant">Lvl. 15 Admin</p>
+</div>
+<nav class="flex-grow flex flex-col gap-xs overflow-y-auto">
+<!-- Dashboard is active -->
+<a class="flex items-center gap-sm px-md py-sm bg-primary-container text-on-primary-container border-l-4 border-primary font-bold mx-2 rounded-sm active:scale-98 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-pixel text-label-pixel">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-label-pixel text-label-pixel">Quests</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+<span class="font-label-pixel text-label-pixel">Submissions</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="workspace_premium">workspace_premium</span>
+<span class="font-label-pixel text-label-pixel">Rewards</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-pixel text-label-pixel">Redemptions</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="font-label-pixel text-label-pixel">Leaderboard</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-variant hover:translate-x-1 mx-2 rounded-sm transition-all active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-pixel text-label-pixel">Settings</span>
+</a>
+</nav>
+<div class="px-md mt-auto pt-md flex flex-col gap-unit">
+<button class="bg-primary text-white font-bold uppercase py-sm px-md border-b-2 border-on-surface-variant active:translate-y-px transition-all">
+                NEW QUEST
+            </button>
+<div class="flex flex-col mt-md">
+<a class="flex items-center gap-sm px-md py-xs text-on-surface-variant hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="contact_support">contact_support</span>
+<span class="font-label-pixel text-label-pixel">Support</span>
+</a>
+<a class="flex items-center gap-sm px-md py-xs text-on-surface-variant hover:text-error transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+<span class="font-label-pixel text-label-pixel">Log Out</span>
+</a>
+</div>
+</div>
+</aside>
+<div class="flex-grow flex flex-col min-w-0 bg-surface">
+<!-- TopNavBar Shell -->
+<header class="flex justify-between items-center w-full px-margin py-sm sticky top-0 z-50 bg-surface border-b-2 border-on-surface shadow-[4px_4px_0px_0px_rgba(0,74,198,0.2)]">
+<div class="flex items-center gap-md">
+<span class="md:hidden material-symbols-outlined text-primary cursor-pointer" data-icon="menu">menu</span>
+<div class="flex items-center bg-surface-container-highest px-sm py-xs border-2 border-on-surface rounded-sm">
+<span class="material-symbols-outlined text-primary mr-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md placeholder-on-surface-variant w-48 lg:w-96" placeholder="Search quests..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high p-sm transition-all cursor-pointer" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high p-sm transition-all cursor-pointer" data-icon="help_outline">help_outline</button>
+<div class="flex items-center gap-sm ml-sm pl-sm border-l-2 border-outline-variant">
+<div class="text-right hidden sm:block">
+<p class="font-bold text-primary leading-none">Alex Rivera</p>
+<p class="text-label-pixel font-label-pixel text-on-surface-variant">Class of '25</p>
+</div>
+<img alt="User Profile Avatar" class="w-10 h-10 border-2 border-primary rounded-sm" data-alt="A professional and friendly headshot of a young adult male student with a bright, energetic expression. He is wearing modern academic-casual clothing. The background is a clean, slightly blurred university setting with soft, natural morning light, maintaining a crisp light-mode aesthetic with subtle blue and white tones to match a high-end corporate dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzSjs2mQowmyv0PMUpnp23Vyv9bYfDvvG1nOH0MtgD2bvXftfVczrOYgh-fvyaambLkuVedmzp-m1HMLzmZjad31FEJYkL1KJds4knUWGm11BuiGSYgi_kjBgZ6Ppiv3UpnrptjHhOGSfnHZ_iTiZHKsd-f_4aRRaHJzcPLOfKSo9m7nqIJLBdQZaggqgw1beJi57hBrKbmI2E3-9zClGqqM4rFo3eMHxclQ_2Ma8Q4pODiaK-UxTf5WZL1Tc4iaLwS8odpuYS9_o"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="p-margin max-w-7xl mx-auto w-full">
+<!-- Welcome Header -->
+<div class="mb-xl">
+<h2 class="font-display-xl text-display-xl text-on-surface tracking-tight mb-xs">Welcome back, Alex!</h2>
+<div class="flex items-center gap-sm">
+<span class="font-label-pixel text-label-pixel bg-secondary-container text-on-secondary-container px-sm py-unit rounded-sm border border-on-secondary-container">DAILY STREAK: 5 DAYS</span>
+<span class="font-label-pixel text-label-pixel text-on-surface-variant">Last login: 2 hours ago</span>
+</div>
+</div>
+<!-- Stats Row: Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md pixel-border transition-all hover:-translate-y-1 hover:-translate-x-1">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Total Points</p>
+<span class="material-symbols-outlined text-primary" data-icon="star">star</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-primary">12,450 <span class="text-body-md font-label-pixel text-on-surface-variant">XP</span></p>
+<div class="mt-md h-2 w-full bg-surface-variant rounded-sm overflow-hidden">
+<div class="h-full w-3/4 bg-primary transition-all"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md pixel-border transition-all hover:-translate-y-1 hover:-translate-x-1">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Completed Quests</p>
+<span class="material-symbols-outlined text-primary" data-icon="task_alt">task_alt</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-primary">42</p>
+<p class="font-label-pixel text-label-pixel text-tertiary mt-sm font-bold">+3 this week</p>
+</div>
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md pixel-border transition-all hover:-translate-y-1 hover:-translate-x-1">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Current Rank</p>
+<span class="material-symbols-outlined text-primary" data-icon="military_tech">military_tech</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-primary">Technomancer</p>
+<p class="font-label-pixel text-label-pixel text-on-surface-variant mt-sm">Top 5% of Engineering Dept.</p>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<!-- Active Quests Card (8 cols) -->
+<div class="lg:col-span-8 flex flex-col">
+<div class="bg-on-secondary-fixed text-white px-md py-sm border-2 border-b-0 border-on-surface">
+<h3 class="font-headline-md text-headline-md flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+                            Active Quests
+                        </h3>
+</div>
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md flex-grow pixel-border">
+<div class="space-y-md">
+<!-- Quest Item 1 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-md p-md border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors rounded-sm">
+<div class="w-12 h-12 bg-primary-container flex items-center justify-center border-2 border-on-surface flex-shrink-0">
+<span class="material-symbols-outlined text-white" data-icon="wifi">wifi</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-primary">Campus Network Optimization</h4>
+<p class="text-body-md text-on-surface-variant">Identify 3 dead zones in the Student Union.</p>
+</div>
+<div class="w-full sm:w-32">
+<div class="flex justify-between mb-unit">
+<span class="font-label-pixel text-label-pixel">66%</span>
+<span class="font-label-pixel text-label-pixel">2/3</span>
+</div>
+<div class="h-2 w-full bg-surface-variant rounded-sm overflow-hidden flex">
+<div class="h-full w-2/3 bg-primary"></div>
+</div>
+</div>
+</div>
+<!-- Quest Item 2 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-md p-md border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors rounded-sm">
+<div class="w-12 h-12 bg-secondary-container flex items-center justify-center border-2 border-on-surface flex-shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="security">security</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-primary">Cybersecurity Drill</h4>
+<p class="text-body-md text-on-surface-variant">Complete the Phishing Awareness Module.</p>
+</div>
+<div class="w-full sm:w-32">
+<div class="flex justify-between mb-unit">
+<span class="font-label-pixel text-label-pixel">10%</span>
+<span class="font-label-pixel text-label-pixel">1/10</span>
+</div>
+<div class="h-2 w-full bg-surface-variant rounded-sm overflow-hidden">
+<div class="h-full w-[10%] bg-primary"></div>
+</div>
+</div>
+</div>
+<!-- Quest Item 3 -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-md p-md border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors rounded-sm opacity-60">
+<div class="w-12 h-12 bg-surface-variant flex items-center justify-center border-2 border-on-surface flex-shrink-0">
+<span class="material-symbols-outlined text-outline" data-icon="print">print</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface-variant">Paperless Initiative</h4>
+<p class="text-body-md text-on-surface-variant">Setup mobile printing for your dorm floor.</p>
+</div>
+<div class="bg-on-surface text-white px-sm py-unit text-label-pixel font-label-pixel rounded-sm">LOCKED (LVL 16)</div>
+</div>
+</div>
+<button class="mt-md w-full py-sm border-2 border-dashed border-primary text-primary font-bold hover:bg-primary-container hover:text-white transition-all rounded-sm uppercase tracking-wider">View All Quests</button>
+</div>
+</div>
+<!-- Leaderboard Mini (4 cols) -->
+<div class="lg:col-span-4 flex flex-col">
+<div class="bg-primary text-white px-md py-sm border-2 border-b-0 border-on-surface">
+<h3 class="font-headline-md text-headline-md flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+                            Top Command
+                        </h3>
+</div>
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md flex-grow pixel-border">
+<table class="w-full text-left">
+<thead class="border-b-2 border-on-surface">
+<tr>
+<th class="font-label-pixel text-label-pixel py-sm text-on-surface-variant uppercase">Rank</th>
+<th class="font-label-pixel text-label-pixel py-sm text-on-surface-variant uppercase">Student</th>
+<th class="font-label-pixel text-label-pixel py-sm text-on-surface-variant text-right uppercase">Score</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr>
+<td class="py-md font-bold text-primary">#1</td>
+<td class="py-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-sm bg-tertiary-fixed border border-on-surface flex-shrink-0"></div>
+<span class="font-bold">Jordan S.</span>
+</td>
+<td class="py-md text-right font-label-pixel">15,900</td>
+</tr>
+<tr class="bg-surface-container-low">
+<td class="py-md font-bold text-primary">#4</td>
+<td class="py-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-sm bg-primary-container border border-on-surface flex-shrink-0"></div>
+<span class="font-bold">Alex R. (You)</span>
+</td>
+<td class="py-md text-right font-label-pixel">12,450</td>
+</tr>
+<tr>
+<td class="py-md font-bold text-primary">#5</td>
+<td class="py-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-sm bg-secondary-fixed border border-on-surface flex-shrink-0"></div>
+<span class="font-bold">Casey M.</span>
+</td>
+<td class="py-md text-right font-label-pixel">11,200</td>
+</tr>
+<tr>
+<td class="py-md font-bold text-primary">#6</td>
+<td class="py-md flex items-center gap-sm">
+<div class="w-8 h-8 rounded-sm bg-surface-variant border border-on-surface flex-shrink-0"></div>
+<span class="font-bold">Taylor W.</span>
+</td>
+<td class="py-md text-right font-label-pixel">10,850</td>
+</tr>
+</tbody>
+</table>
+<a class="block text-center mt-md text-primary font-bold hover:underline" href="#">Full Leaderboard</a>
+</div>
+</div>
+<!-- Recent Activity (Asymmetric span) -->
+<div class="lg:col-span-12">
+<div class="bg-surface-variant text-on-surface-variant px-md py-xs border-2 border-b-0 border-on-surface inline-block">
+<p class="font-section-title text-section-title uppercase">Recent Transmission Logs</p>
+</div>
+<div class="bg-surface-container-lowest border-2 border-on-surface p-md pixel-border grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<div class="flex gap-sm p-sm border-l-4 border-tertiary bg-surface-container-low">
+<span class="material-symbols-outlined text-tertiary" data-icon="history">history</span>
+<div>
+<p class="text-sm font-bold">Achievement Unlocked!</p>
+<p class="text-xs text-on-surface-variant">"The Signal" - Found first dead zone.</p>
+<p class="text-[10px] font-label-pixel mt-xs text-outline">15 MINS AGO</p>
+</div>
+</div>
+<div class="flex gap-sm p-sm border-l-4 border-primary bg-surface-container-low">
+<span class="material-symbols-outlined text-primary" data-icon="confirmation_number">confirmation_number</span>
+<div>
+<p class="text-sm font-bold">Redemption Successful</p>
+<p class="text-xs text-on-surface-variant">Claimed: "1 Day Free Lab Print" voucher.</p>
+<p class="text-[10px] font-label-pixel mt-xs text-outline">2 HOURS AGO</p>
+</div>
+</div>
+<div class="flex gap-sm p-sm border-l-4 border-on-secondary-fixed bg-surface-container-low">
+<span class="material-symbols-outlined text-on-secondary-fixed" data-icon="assignment_turned_in">assignment_turned_in</span>
+<div>
+<p class="text-sm font-bold">Submission Received</p>
+<p class="text-xs text-on-surface-variant">Hardware Survey #452 has been logged.</p>
+<p class="text-[10px] font-label-pixel mt-xs text-outline">YESTERDAY</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer / Global Credits -->
+<footer class="mt-xl p-margin border-t-2 border-on-surface-variant bg-surface-container text-on-surface-variant">
+<div class="flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<p class="font-label-pixel text-label-pixel">CORE SYSTEM v4.2.0-STABLE | ENCRYPTED LINK ACTIVE</p>
+</div>
+<div class="flex gap-lg">
+<a class="hover:text-primary transition-colors text-label-pixel font-label-pixel" href="#">Privacy Protocols</a>
+<a class="hover:text-primary transition-colors text-label-pixel font-label-pixel" href="#">System Terms</a>
+<a class="hover:text-primary transition-colors text-label-pixel font-label-pixel" href="#">Bug Bounty</a>
+</div>
+</div>
+</footer>
+</div>
+<!-- Contextual FAB for Quests -->
+<button class="fixed bottom-margin right-margin w-16 h-16 bg-tertiary text-white border-2 border-on-surface shadow-[4px_4px_0px_0px_rgba(148,55,0,0.5)] flex items-center justify-center hover:-translate-y-1 hover:-translate-x-1 active:scale-95 transition-all z-[60] group">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform" data-icon="add_task">add_task</span>
+<span class="absolute right-full mr-md bg-on-surface text-white px-sm py-xs text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">NEW QUEST</span>
+</button>
+</body></html>

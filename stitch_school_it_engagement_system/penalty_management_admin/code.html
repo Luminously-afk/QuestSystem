@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IT Engagement System - Penalty Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#31447b",
+                        "on-secondary-fixed": "#00174b",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-variant": "#e1e2ed",
+                        "surface-container": "#ededf9",
+                        "on-tertiary-fixed": "#360f00",
+                        "primary-container": "#2563eb",
+                        "on-surface-variant": "#434655",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f3f3fe",
+                        "on-surface": "#191b23",
+                        "secondary-fixed": "#dbe1ff",
+                        "inverse-primary": "#b4c5ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "on-secondary-container": "#394c84",
+                        "surface-container-highest": "#e1e2ed",
+                        "surface": "#faf8ff",
+                        "outline": "#737686",
+                        "primary-fixed": "#dbe1ff",
+                        "tertiary": "#943700",
+                        "inverse-surface": "#2e3039",
+                        "background": "#faf8ff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "primary": "#004ac6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-container-high": "#e7e7f3",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#0053db",
+                        "surface-dim": "#d9d9e5",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#ffede6",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-container": "#acbfff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#faf8ff",
+                        "tertiary-container": "#bc4800",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#495c95",
+                        "on-background": "#191b23",
+                        "outline-variant": "#c3c6d7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xl": "40px",
+                        "xs": "4px",
+                        "margin": "32px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "section-title": ["Inter"],
+                        "headline-md": ["Space Grotesk"],
+                        "display-xl": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-pixel": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "section-title": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1em", "fontWeight": "800"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-pixel": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pixel-border {
+            box-shadow: 2px 2px 0px 0px #191b23;
+        }
+        .pixel-border-active {
+            box-shadow: 4px 4px 0px 0px #004ac6;
+        }
+        .pixel-border-error {
+            box-shadow: 4px 4px 0px 0px #ba1a1a;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex">
+<!-- SideNavBar (Authority: JSON Component) -->
+<aside class="flex flex-col h-screen py-md gap-unit bg-surface-container-low border-r-2 border-on-surface docked full-height left-0 w-64 sticky top-0 z-40">
+<div class="px-md mb-xl">
+<h1 class="font-headline-sm text-headline-sm font-black uppercase text-primary">TECH COMMAND</h1>
+<p class="font-label-pixel text-label-pixel text-on-surface-variant">Lvl. 15 Admin</p>
+</div>
+<nav class="flex-1 flex flex-col gap-xs overflow-y-auto">
+<!-- Navigation Items Mapping -->
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-pixel text-label-pixel">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-label-pixel text-label-pixel">Quests</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">send</span>
+<span class="font-label-pixel text-label-pixel">Submissions</span>
+</a>
+<!-- Active State Logic: Penalty Management is a sub-section of a high-level admin dashboard, mapping to "Settings" or "Leaderboard" (Audit) -->
+<a class="bg-primary-container text-on-primary-container border-l-4 border-primary font-bold mx-2 rounded-sm py-sm px-md flex items-center gap-sm translate-x-1 shadow-sm" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span class="font-label-pixel text-label-pixel">Penalties</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label-pixel text-label-pixel">Redemptions</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-pixel text-label-pixel">Leaderboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-pixel text-label-pixel">Settings</span>
+</a>
+</nav>
+<div class="px-md mt-auto pt-md flex flex-col gap-xs">
+<button class="bg-primary text-on-primary font-label-pixel text-label-pixel px-md py-sm rounded-sm font-bold border-b-4 border-on-secondary-fixed-variant active:translate-y-1 active:border-b-0 transition-all mb-md">
+                NEW QUEST
+            </button>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-pixel text-label-pixel">Support</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-2 rounded-sm transition-all py-sm px-md flex items-center gap-sm hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-pixel text-label-pixel">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopNavBar (Authority: JSON Component) -->
+<header class="flex justify-between items-center w-full px-margin py-sm sticky top-0 z-50 bg-surface border-b-2 border-on-surface shadow-[4px_4px_0px_0px_rgba(0,74,198,0.2)]">
+<div class="flex items-center gap-lg">
+<span class="font-headline-md text-headline-md font-bold tracking-tight text-primary uppercase">IT ENGAGEMENT SYSTEM</span>
+<div class="hidden md:flex relative">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-xl pr-md py-xs bg-surface-container-low border-2 border-on-surface font-label-pixel text-label-pixel focus:ring-0 focus:border-primary w-64" placeholder="Search students..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-all p-xs rounded active:scale-95">notifications</button>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-all p-xs rounded active:scale-95">help_outline</button>
+<div class="flex items-center gap-sm ml-sm cursor-pointer hover:bg-surface-container-high p-xs rounded transition-all">
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border-2 border-primary" data-alt="A professional headshot of a tech-savvy administrator in a clean, brightly lit modern office setting. The lighting is crisp and cool, highlighting high-resolution details of the professional's face against a blurred background of glowing server racks and minimalist white architecture. The image follows a high-key light mode aesthetic with deep blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwa8Abu9Phr0q0ISZdCzg5sjrapE5OVQ1fo4EDwZhqaqLNgq3ZDOdvVdssJiA-QCV8DkBMnbR7qSJnkgTtaskETwa53OlTz7HgwxfXC4p3BWwdO_-UkF2AkIf60Z5VzgkiGKimChQwBmzaUCkzDi_O1WcZ3hNf6-xSfjPkFbKclR7sqs-_6sE-YI0DNjhGV6M9VbwZpac7rOyCHTMQwCVAl9pj7yZAARhzEgmGZC9K5_hV59cJRJ3_zNIyV8nH4obmLL1rT2pO96U"/>
+<span class="material-symbols-outlined text-primary">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Body Scroll Area -->
+<section class="flex-1 overflow-y-auto p-margin space-y-xl">
+<!-- Page Header Area -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Penalty Management</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Monitor and manage academic integrity violations and technical misconduct. Points deducted are automatically updated on the global leaderboard.</p>
+</div>
+<button class="flex items-center gap-sm bg-error text-on-primary px-lg py-md font-bold rounded-sm border-b-4 border-on-error-container active:translate-y-1 active:border-b-0 transition-all pixel-border-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="uppercase tracking-wider font-label-pixel text-label-pixel">ADD PENALTY</span>
+</button>
+</div>
+<!-- Bento Statistics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-lg">
+<div class="bg-white p-md border-2 border-on-surface pixel-border relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">gavel</span>
+</div>
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Total Penalties</p>
+<p class="font-display-xl text-display-xl text-error">142</p>
+<div class="mt-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-error text-[18px]">trending_up</span>
+<span class="font-label-pixel text-label-pixel text-error">+12% from last month</span>
+</div>
+</div>
+<div class="bg-white p-md border-2 border-on-surface pixel-border relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">money_off</span>
+</div>
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Points Deducted</p>
+<p class="font-display-xl text-display-xl text-on-surface">2,850</p>
+<p class="font-label-pixel text-label-pixel text-on-surface-variant mt-sm">Across all active students</p>
+</div>
+<div class="bg-white p-md border-2 border-on-surface pixel-border relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">pending_actions</span>
+</div>
+<p class="font-section-title text-section-title text-on-surface-variant uppercase">Pending Reviews</p>
+<p class="font-display-xl text-display-xl text-tertiary">08</p>
+<div class="mt-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary text-[18px]">schedule</span>
+<span class="font-label-pixel text-label-pixel text-tertiary">Avg response: 4h</span>
+</div>
+</div>
+<div class="bg-primary p-md border-2 border-on-surface pixel-border relative overflow-hidden group text-on-primary">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[80px]">verified_user</span>
+</div>
+<p class="font-section-title text-section-title opacity-80 uppercase">System Health</p>
+<p class="font-display-xl text-display-xl">98%</p>
+<p class="font-label-pixel text-label-pixel mt-sm">Compliance within threshold</p>
+</div>
+</div>
+<!-- Table Section: Student Penalties -->
+<div class="bg-white border-2 border-on-surface pixel-border overflow-hidden">
+<div class="bg-surface-container-low border-b-2 border-on-surface px-lg py-md flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md flex items-center gap-sm text-on-surface">
+<span class="material-symbols-outlined text-primary">list_alt</span>
+                        Violation Registry
+                    </h3>
+<div class="flex gap-sm">
+<button class="bg-white border-2 border-on-surface px-md py-sm font-label-pixel text-label-pixel hover:bg-surface-container transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">filter_list</span> FILTER
+                        </button>
+<button class="bg-white border-2 border-on-surface px-md py-sm font-label-pixel text-label-pixel hover:bg-surface-container transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">download</span> EXPORT
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface border-b-2 border-on-surface">
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase">Student Name</th>
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase">Violation Type</th>
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase">Points</th>
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase">Date Issued</th>
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase">Status</th>
+<th class="px-lg py-md font-label-pixel text-label-pixel text-on-surface-variant uppercase text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-2 divide-surface-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 bg-secondary-container rounded-sm flex items-center justify-center text-on-secondary-container font-black">JD</div>
+<span class="font-bold text-on-surface">Jonathan Doe</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="bg-error-container text-on-error-container px-sm py-unit rounded-sm font-label-pixel text-label-pixel border border-error">Unauthorized Port Scanning</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-label-pixel text-headline-md text-error font-black">-50 XP</span>
+</td>
+<td class="px-lg py-md font-label-pixel text-label-pixel">OCT 24, 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-error">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-label-pixel text-label-pixel font-bold uppercase">Applied</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="material-symbols-outlined p-xs hover:text-primary transition-colors">edit</button>
+<button class="material-symbols-outlined p-xs hover:text-error transition-colors">delete</button>
+<button class="material-symbols-outlined p-xs hover:text-on-surface transition-colors">more_vert</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 bg-tertiary-fixed rounded-sm flex items-center justify-center text-on-tertiary-fixed font-black">SP</div>
+<span class="font-bold text-on-surface">Sarah Parker</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="bg-surface-variant text-on-surface-variant px-sm py-unit rounded-sm font-label-pixel text-label-pixel border border-outline">VPN Policy Bypass</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-label-pixel text-headline-md text-error font-black">-25 XP</span>
+</td>
+<td class="px-lg py-md font-label-pixel text-label-pixel">OCT 22, 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-tertiary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-pixel text-label-pixel font-bold uppercase">Under Appeal</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="material-symbols-outlined p-xs hover:text-primary transition-colors">edit</button>
+<button class="material-symbols-outlined p-xs hover:text-error transition-colors">delete</button>
+<button class="material-symbols-outlined p-xs hover:text-on-surface transition-colors">more_vert</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 bg-primary-fixed rounded-sm flex items-center justify-center text-on-primary-fixed font-black">MB</div>
+<span class="font-bold text-on-surface">Marcus Brown</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="bg-error-container text-on-error-container px-sm py-unit rounded-sm font-label-pixel text-label-pixel border border-error">Script Injection Attempt</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-label-pixel text-headline-md text-error font-black">-100 XP</span>
+</td>
+<td class="px-lg py-md font-label-pixel text-label-pixel">OCT 21, 2023</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-error">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-label-pixel text-label-pixel font-bold uppercase">Applied</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex items-center justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="material-symbols-outlined p-xs hover:text-primary transition-colors">edit</button>
+<button class="material-symbols-outlined p-xs hover:text-error transition-colors">delete</button>
+<button class="material-symbols-outlined p-xs hover:text-on-surface transition-colors">more_vert</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer/Pagination -->
+<div class="bg-surface border-t-2 border-on-surface px-lg py-md flex items-center justify-between">
+<span class="font-label-pixel text-label-pixel text-on-surface-variant">Showing 3 of 142 records</span>
+<div class="flex items-center gap-sm">
+<button class="w-8 h-8 flex items-center justify-center border-2 border-on-surface hover:bg-surface-container transition-all active:scale-90">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<span class="font-label-pixel text-label-pixel font-bold px-md">PAGE 1 / 48</span>
+<button class="w-8 h-8 flex items-center justify-center border-2 border-on-surface bg-on-surface text-white active:scale-90">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Warning Footer Alert -->
+<div class="bg-error-container border-2 border-error p-lg flex items-start gap-md pixel-border-error">
+<span class="material-symbols-outlined text-error text-headline-md" style="font-variation-settings: 'FILL' 1;">report_problem</span>
+<div>
+<h4 class="font-bold text-on-error-container uppercase font-label-pixel">Administrative Protocol</h4>
+<p class="font-body-md text-on-error-container mt-unit">All point deductions are permanent once confirmed and are broadcasted to the regional IT Command Center for review. Intentional abuse of penalty tools will result in administrative de-leveling.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual FAB (Authority: JSON Policy - Suppressed on Details/Transactional, but this is a Management Dashboard) -->
+<button class="fixed bottom-margin right-margin bg-primary text-on-primary w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-2 border-on-surface-variant active:scale-95 transition-transform group md:hidden">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+</body></html>

@@ -69,14 +69,9 @@ class User extends Model {
 
     public function getLeaderboard() {
         $stmt = $this->db->prepare(
-            "SELECT u.user_id, u.full_name, u.total_points,
-                    COUNT(s.submission_id) AS completed_count
-             FROM users u
-             LEFT JOIN quest_submissions s
-               ON s.user_id = u.user_id AND s.status = 'approved'
-             WHERE u.role = 'student' AND u.is_active = 1
-             GROUP BY u.user_id
-             ORDER BY u.total_points DESC, completed_count DESC, u.full_name ASC"
+            "SELECT user_id, full_name, total_points, completed_quests AS completed_count
+             FROM vw_student_leaderboard
+             ORDER BY total_points DESC, completed_count DESC, full_name ASC"
         );
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

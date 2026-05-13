@@ -12,8 +12,16 @@ class Database {
     public function __construct() {
         $this->host = getenv('DB_HOST') ?: 'localhost';
         $this->db_name = getenv('DB_NAME') ?: 'it_quest';
-        $this->username = getenv('DB_USER') ?: 'root';
-        $this->password = getenv('DB_PASS') ?: '';
+        // Dynamically assign database privileges based on logged-in user role
+        $role = $_SESSION['role'] ?? 'guest';
+        
+        if ($role === 'admin') {
+            $this->username = getenv('DB_USER_ADMIN') ?: 'quest_admin_user';
+            $this->password = getenv('DB_PASS_ADMIN') ?: 'admin_secure_pass123';
+        } else {
+            $this->username = getenv('DB_USER_STUDENT') ?: 'quest_student_user';
+            $this->password = getenv('DB_PASS_STUDENT') ?: 'student_secure_pass123';
+        }
         $this->port = getenv('DB_PORT') ?: '3306';
         $this->ssl_ca = getenv('DB_SSL_CA') ?: '';
         $verifyValue = getenv('DB_SSL_VERIFY');
