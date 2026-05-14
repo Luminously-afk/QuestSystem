@@ -119,7 +119,6 @@
             box-shadow: 0px 0px 0px 0px rgba(0, 74, 198, 1);
         }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        body { min-height: max(884px, 100dvh); }
         dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
         dialog { margin: auto; }
     </style>

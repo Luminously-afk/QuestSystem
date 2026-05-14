@@ -20,9 +20,20 @@ class StudentController extends Controller {
         $this->requireStudent();
 
         $stats = $this->userModel->getStudentStats($_SESSION['user_id']);
+        
         $this->view('student/index', [
             'name' => $_SESSION['full_name'] ?? 'Student',
             'stats' => $stats
+        ]);
+    }
+
+    public function history() {
+        $this->requireStudent();
+
+        $pointHistory = $this->userModel->getPointHistory($_SESSION['user_id']);
+        
+        $this->view('student/history', [
+            'point_history' => $pointHistory
         ]);
     }
 
@@ -251,9 +262,12 @@ class StudentController extends Controller {
     public function leaderboard() {
         $this->requireStudent();
 
-        $leaderboard = $this->userModel->getLeaderboard();
+        $leaderboardPoints = $this->userModel->getLeaderboard('points');
+        $leaderboardQuests = $this->userModel->getLeaderboard('quests');
+        
         $this->view('student/leaderboard', [
-            'leaderboard' => $leaderboard
+            'leaderboard_points' => $leaderboardPoints,
+            'leaderboard_quests' => $leaderboardQuests
         ]);
     }
 

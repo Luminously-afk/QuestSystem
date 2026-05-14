@@ -117,6 +117,17 @@ CREATE TABLE penalties (
     CONSTRAINT chk_penalty_points CHECK (points_deducted > 0)
 );
 
+CREATE TABLE manual_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    points_added INT NOT NULL,
+    reason TEXT NOT NULL,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
 -- Triggers for points calculation
 DELIMITER //
 
@@ -163,6 +174,43 @@ WHERE u.role = 'student' AND u.is_active = 1
 GROUP BY u.user_id
 ORDER BY u.total_points DESC, completed_quests DESC;
 
+CREATE OR REPLACE VIEW vw_user_point_history AS
+SELECT 
+    s.user_id,
+    q.points AS points_change,
+    'Earned' AS type,
+    CONCAT('Quest Completed: ', q.title) AS reason,
+    s.reviewed_at AS transaction_date
+FROM quest_submissions s
+JOIN quests q ON s.quest_id = q.quest_id
+WHERE s.status = 'approved'
+UNION ALL
+SELECT 
+    r.user_id,
+    -rew.required_points AS points_change,
+    'Deducted' AS type,
+    CONCAT('Reward Claimed: ', rew.reward_name) AS reason,
+    r.reviewed_at AS transaction_date
+FROM reward_redemptions r
+JOIN rewards rew ON r.reward_id = rew.reward_id
+WHERE r.status = 'approved'
+UNION ALL
+SELECT 
+    p.user_id,
+    -p.points_deducted AS points_change,
+    'Penalty' AS type,
+    CONCAT('Penalty: ', p.reason) AS reason,
+    p.created_at AS transaction_date
+FROM penalties p
+UNION ALL
+SELECT 
+    m.user_id,
+    m.points_added AS points_change,
+    'Manual' AS type,
+    CONCAT('Admin Adjustment: ', m.reason) AS reason,
+    m.created_at AS transaction_date
+FROM manual_points m;
+
 -- --------------------------------------------------------
 -- SQL STORED PROCEDURE WITH TRANSACTION (ACID)
 -- --------------------------------------------------------
@@ -175,6 +223,9 @@ CREATE PROCEDURE sp_deduct_penalty(
     IN p_admin_id INT
 )
 BEGIN
+    DECLARE v_student_name VARCHAR(100);
+    DECLARE v_student_id_str VARCHAR(20);
+    
     -- Declare variables for transaction exception handling
     DECLARE exit handler for sqlexception
     BEGIN
@@ -185,6 +236,10 @@ BEGIN
 
     -- Start Transaction
     START TRANSACTION;
+
+    -- Fetch user details for the audit log
+    SELECT full_name, IFNULL(student_id, 'N/A') INTO v_student_name, v_student_id_str 
+    FROM users WHERE user_id = p_user_id;
 
     -- 1. Insert into penalties table
     INSERT INTO penalties (user_id, points_deducted, reason, created_by, created_at)
@@ -197,7 +252,7 @@ BEGIN
 
     -- 3. Log the action
     INSERT INTO audit_logs (admin_id, action, description)
-    VALUES (p_admin_id, 'PENALTY_ISSUED', CONCAT('Deducted ', p_points_deducted, ' points from user ID: ', p_user_id, '. Reason: ', p_reason));
+    VALUES (p_admin_id, 'PENALTY_ISSUED', CONCAT('Deducted ', p_points_deducted, ' points from ', v_student_name, ' (', v_student_id_str, '). Reason: ', p_reason));
 
     -- Commit transaction if all steps succeed
     COMMIT;
@@ -216,7 +271,9 @@ CREATE USER IF NOT EXISTS 'quest_student_user'@'localhost' IDENTIFIED BY 'studen
 GRANT SELECT ON it_quest.quests TO 'quest_student_user'@'localhost';
 GRANT SELECT ON it_quest.rewards TO 'quest_student_user'@'localhost';
 GRANT SELECT ON it_quest.vw_student_leaderboard TO 'quest_student_user'@'localhost';
+GRANT SELECT ON it_quest.vw_user_point_history TO 'quest_student_user'@'localhost';
 GRANT SELECT ON it_quest.penalties TO 'quest_student_user'@'localhost';
+GRANT SELECT ON it_quest.manual_points TO 'quest_student_user'@'localhost';
 -- Students can read and update their own user record (handled by app logic, but DB needs UPDATE)
 GRANT SELECT, UPDATE ON it_quest.users TO 'quest_student_user'@'localhost';
 -- Students can submit quests and claim rewards
@@ -237,9 +294,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.reward_redemptions TO 'quest_ad
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_acceptances TO 'quest_admin_user'@'localhost';
 -- Admins can view and insert penalties (via procedure) and audit logs
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.penalties TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.manual_points TO 'quest_admin_user'@'localhost';
 GRANT SELECT, INSERT ON it_quest.audit_logs TO 'quest_admin_user'@'localhost';
 GRANT EXECUTE ON PROCEDURE it_quest.sp_deduct_penalty TO 'quest_admin_user'@'localhost';
 GRANT SELECT ON it_quest.vw_student_leaderboard TO 'quest_admin_user'@'localhost';
+GRANT SELECT ON it_quest.vw_user_point_history TO 'quest_admin_user'@'localhost';
 
 -- Apply changes
 FLUSH PRIVILEGES;

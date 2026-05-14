@@ -67,11 +67,27 @@ class User extends Model {
         return $result;
     }
 
-    public function getLeaderboard() {
+    public function getPointHistory($userId) {
+        $stmt = $this->db->prepare(
+            "SELECT points_change, type, reason, transaction_date 
+             FROM vw_user_point_history 
+             WHERE user_id = :user_id 
+             ORDER BY transaction_date DESC"
+        );
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getLeaderboard($sortBy = 'points') {
+        $orderClause = "ORDER BY total_points DESC, completed_count DESC, full_name ASC";
+        if ($sortBy === 'quests') {
+            $orderClause = "ORDER BY completed_count DESC, total_points DESC, full_name ASC";
+        }
         $stmt = $this->db->prepare(
             "SELECT user_id, full_name, total_points, completed_quests AS completed_count
              FROM vw_student_leaderboard
-             ORDER BY total_points DESC, completed_count DESC, full_name ASC"
+             $orderClause"
         );
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -138,6 +154,34 @@ class User extends Model {
         $stmt->bindParam(':is_active', $isActive, PDO::PARAM_INT);
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
         return $stmt->execute();
+    }
+
+    public function addPoints($userId, $points, $reason = '', $adminId = null) {
+        try {
+            $this->db->beginTransaction();
+            $stmt = $this->db->prepare(
+                "UPDATE users SET total_points = total_points + :points WHERE user_id = :user_id"
+            );
+            $stmt->bindParam(':points', $points, PDO::PARAM_INT);
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $insert = $this->db->prepare(
+                "INSERT INTO manual_points (user_id, points_added, reason, created_by)
+                 VALUES (:user_id, :points, :reason, :admin_id)"
+            );
+            $insert->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $insert->bindParam(':points', $points, PDO::PARAM_INT);
+            $insert->bindParam(':reason', $reason);
+            $insert->bindParam(':admin_id', $adminId, PDO::PARAM_INT);
+            $insert->execute();
+            
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return false;
+        }
     }
 
     public function emailExistsForOther($email, $userId) {

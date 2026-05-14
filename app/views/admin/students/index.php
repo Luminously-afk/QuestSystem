@@ -31,6 +31,7 @@
         <?php
             if ($_GET['success'] === 'updated') echo "Student updated successfully.";
             elseif ($_GET['success'] === 'status') echo "Student status updated.";
+            elseif ($_GET['success'] === 'points_added') echo "Points successfully added to student.";
         ?>
     </div>
 <?php endif; ?>
@@ -39,6 +40,7 @@
     <div class="bg-error-container border-2 border-on-surface p-4 mb-8 font-mono font-bold uppercase pixel-shadow-sm text-on-surface">
         <?php
             if ($_GET['error'] === 'invalid') echo "Invalid request.";
+            elseif ($_GET['error'] === 'invalid_points') echo "Points must be greater than zero.";
             else echo "Something went wrong. Please try again.";
         ?>
     </div>
@@ -90,13 +92,16 @@
                             </td>
                             <td class="p-4 uppercase"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($student['created_at']))); ?></td>
                             <td class="p-4 text-right">
-                                <button onclick="openEditStudentModal(<?php echo htmlspecialchars(json_encode($student)); ?>)" class="text-primary hover:text-on-surface mx-2">
+                                <button onclick="openAddPointsModal(<?php echo htmlspecialchars(json_encode($student)); ?>)" class="text-[#1e6d12] hover:text-on-surface mx-2" title="Add Points">
+                                    <span class="material-symbols-outlined">stars</span>
+                                </button>
+                                <button onclick="openEditStudentModal(<?php echo htmlspecialchars(json_encode($student)); ?>)" class="text-primary hover:text-on-surface mx-2" title="Edit Student">
                                     <span class="material-symbols-outlined">edit</span>
                                 </button>
                                 <form method="post" action="<?php echo BASE_URL; ?>/admin/toggleStudentStatus" class="inline-block" onsubmit="return confirm('Update this student status?');">
                                     <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($student['user_id']); ?>">
                                     <input type="hidden" name="is_active" value="<?php echo (int) $student['is_active'] === 1 ? 0 : 1; ?>">
-                                    <button type="submit" class="text-error hover:text-on-surface mx-2">
+                                    <button type="submit" class="text-error hover:text-on-surface mx-2" title="Toggle Status">
                                         <span class="material-symbols-outlined">power_settings_new</span>
                                     </button>
                                 </form>
@@ -192,6 +197,33 @@
     </form>
 </dialog>
 
+<!-- Add Points Dialog -->
+<dialog id="add-points-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
+    <div class="bg-[#1e6d12] border-b-4 border-on-surface p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase">ADD POINTS</h2>
+        <button onclick="closeModal('add-points-modal')" class="text-white hover:text-zinc-200"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="<?php echo BASE_URL; ?>/admin/addPoints" class="p-6 flex flex-col gap-4 font-mono">
+        <input type="hidden" name="user_id" id="add-points-user-id">
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">STUDENT</label>
+            <input type="text" id="add-points-student-name" class="border-2 border-on-surface p-2 bg-surface-container text-on-surface-variant font-bold" readonly>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">POINTS TO ADD</label>
+            <input type="number" name="points" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-[#1e6d12] font-black text-primary text-xl" required>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">REASON / NOTE</label>
+            <textarea name="reason" rows="2" class="border-2 border-on-surface p-2 focus:outline-none focus:border-[#1e6d12] resize-none" placeholder="e.g. Exceptional class participation..." required></textarea>
+        </div>
+        <div class="flex gap-4 mt-4">
+            <button type="button" onclick="closeModal('add-points-modal')" class="flex-1 bg-zinc-200 border-2 border-on-surface p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
+            <button type="submit" class="flex-1 bg-[#1e6d12] text-white border-2 border-on-surface p-3 font-button-text hover:bg-[#154d0d]">GIVE POINTS</button>
+        </div>
+    </form>
+</dialog>
+
 <script>
     function openEditStudentModal(student) {
         document.getElementById('edit-student-id').value = student.user_id;
@@ -203,6 +235,12 @@
 
         document.querySelector('#edit-student-modal form').action = "<?php echo BASE_URL; ?>/admin/editStudent/" + student.user_id;
         openModal('edit-student-modal');
+    }
+
+    function openAddPointsModal(student) {
+        document.getElementById('add-points-user-id').value = student.user_id;
+        document.getElementById('add-points-student-name').value = student.full_name + " (" + (student.student_id || "N/A") + ")";
+        openModal('add-points-modal');
     }
 
     <?php if (!empty($open_create_modal)): ?>

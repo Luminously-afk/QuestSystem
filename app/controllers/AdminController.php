@@ -505,9 +505,12 @@ class AdminController extends Controller {
     public function leaderboard() {
         $this->requireAdmin();
 
-        $leaderboard = $this->userModel->getLeaderboard();
+        $leaderboardPoints = $this->userModel->getLeaderboard('points');
+        $leaderboardQuests = $this->userModel->getLeaderboard('quests');
+        
         $this->view('admin/leaderboard', [
-            'leaderboard' => $leaderboard
+            'leaderboard_points' => $leaderboardPoints,
+            'leaderboard_quests' => $leaderboardQuests
         ]);
     }
 
@@ -559,10 +562,12 @@ class AdminController extends Controller {
         } else {
             $result = $this->penaltyModel->create($userId, $points, $reason, $_SESSION['user_id']);
             if ($result['success']) {
+                $student = $this->userModel->getById($userId);
+                $nameStr = $student ? $student['full_name'] . ' (' . ($student['student_id'] ?: 'N/A') . ')' : 'user ' . $userId;
                 $this->auditLogModel->create(
                     $_SESSION['user_id'],
                     'penalty_create',
-                    'Deducted ' . $points . ' points from user ' . $userId
+                    'Deducted ' . $points . ' points from ' . $nameStr
                 );
                 $this->redirect('admin/penalties?success=created');
                 return;
@@ -762,6 +767,41 @@ class AdminController extends Controller {
         }
 
         $this->redirect('admin/students?error=failed');
+    }
+
+    public function addPoints() {
+        $this->requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/students');
+        }
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        $pointsRaw = $_POST['points'] ?? '';
+        $reason = trim($_POST['reason'] ?? 'Manual Point Adjustment');
+        
+        $points = (int) $pointsRaw;
+
+        if ($userId <= 0) {
+            $this->redirect('admin/students?error=invalid');
+        } elseif ($points <= 0) {
+            $this->redirect('admin/students?error=invalid_points');
+        } else {
+            $updated = $this->userModel->addPoints($userId, $points, $reason, $_SESSION['user_id']);
+            if ($updated) {
+                $student = $this->userModel->getById($userId);
+                $nameStr = $student ? $student['full_name'] . ' (' . ($student['student_id'] ?: 'N/A') . ')' : 'user ' . $userId;
+                
+                $this->auditLogModel->create(
+                    $_SESSION['user_id'],
+                    'points_add',
+                    'Added ' . $points . ' points to ' . $nameStr . '. Reason: ' . $reason
+                );
+                $this->redirect('admin/students?success=points_added');
+            } else {
+                $this->redirect('admin/students?error=failed');
+            }
+        }
     }
 
     private function requireAdmin() {
