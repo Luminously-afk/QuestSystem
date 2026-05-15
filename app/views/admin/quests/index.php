@@ -126,7 +126,12 @@
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">CATEGORY</label>
-            <input type="text" name="category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['category'] ?? ''); ?>" required>
+            <select name="category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
+                <option value="" disabled <?php echo empty($old['category'] ?? '') ? 'selected' : ''; ?>>SELECT CATEGORY</option>
+                <option value="Curricular" <?php echo ($old['category'] ?? '') === 'Curricular' ? 'selected' : ''; ?>>CURRICULAR</option>
+                <option value="extra cur" <?php echo ($old['category'] ?? '') === 'Extra-Curricular' ? 'selected' : ''; ?>>EXTRA CUR</option>
+                <option value="co-curr" <?php echo ($old['category'] ?? '') === 'Co-Curricular' ? 'selected' : ''; ?>>CO-CURR</option>
+            </select>
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">SCOPE TYPE</label>
