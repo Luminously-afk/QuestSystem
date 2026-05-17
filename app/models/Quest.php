@@ -156,11 +156,14 @@ class Quest extends Model {
 
         public function getAcceptedForStudent($userId) {
                 $stmt = $this->db->prepare(
-                        "SELECT q.*, a.status AS acceptance_status, s.status AS submission_status, s.remarks AS submission_remarks
+                    "SELECT q.*, a.status AS acceptance_status, s.status AS submission_status, s.remarks AS submission_remarks,
+                            t.token AS qr_token, t.status AS qr_status, t.redeemed_at AS qr_redeemed_at
                          FROM quest_acceptances a
                          INNER JOIN quests q ON q.quest_id = a.quest_id
                          LEFT JOIN quest_submissions s
                              ON s.quest_id = q.quest_id AND s.user_id = a.user_id
+                             LEFT JOIN quest_qr_tokens t
+                                 ON t.quest_id = a.quest_id AND t.user_id = a.user_id
                          WHERE a.user_id = :user_id
                              AND a.status = 'accepted'
                          ORDER BY q.deadline ASC"

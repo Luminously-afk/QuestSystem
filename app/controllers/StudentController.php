@@ -6,6 +6,7 @@ class StudentController extends Controller {
     private $redemptionModel;
     private $userModel;
     private $acceptanceModel;
+    private $qrTokenModel;
 
     public function __construct() {
         $this->questModel = new Quest();
@@ -14,6 +15,7 @@ class StudentController extends Controller {
         $this->redemptionModel = new Redemption();
         $this->userModel = new User();
         $this->acceptanceModel = new Acceptance();
+        $this->qrTokenModel = new QuestQrToken();
     }
 
     public function index() {
@@ -63,9 +65,11 @@ class StudentController extends Controller {
         $available = $this->questModel->getAvailableForStudent($_SESSION['user_id'], $yearLevel);
 
         $isAvailable = false;
+        $questToAccept = null;
         foreach ($available as $quest) {
             if ((int)$quest['quest_id'] === (int)$questId) {
                 $isAvailable = true;
+                $questToAccept = $quest;
                 break;
             }
         }
@@ -81,6 +85,18 @@ class StudentController extends Controller {
 
         $accepted = $this->acceptanceModel->accept($_SESSION['user_id'], $questId);
         if ($accepted) {
+            if (($questToAccept['proof_type'] ?? '') === 'qr') {
+                $token = $this->qrTokenModel->createOrGetActiveToken($_SESSION['user_id'], $questId);
+                if (!$token) {
+                    $data = [
+                        'error' => 'Failed to generate QR code. Please try again or contact the admin.',
+                        'available_quests' => $this->questModel->getVisibleForStudent($_SESSION['user_id'], $yearLevel),
+                        'accepted_quests' => $this->questModel->getAcceptedForStudent($_SESSION['user_id'])
+                    ];
+                    $this->view('student/quests/index', $data);
+                    return;
+                }
+            }
             $this->redirect('student/quests?success=accepted');
         }
 
@@ -97,6 +113,20 @@ class StudentController extends Controller {
         $quest = $this->questModel->getActiveById($questId);
         if (!$quest) {
             $this->redirect('student/quests');
+        }
+
+        if (($quest['proof_type'] ?? '') === 'qr') {
+            $student = $this->userModel->getById($_SESSION['user_id']);
+            $data = [
+                'error' => 'QR quests are verified by admin scan. Show your QR code to receive credit.',
+                'available_quests' => $this->questModel->getVisibleForStudent(
+                    $_SESSION['user_id'],
+                    ($student['year_level'] ?? null)
+                ),
+                'accepted_quests' => $this->questModel->getAcceptedForStudent($_SESSION['user_id'])
+            ];
+            $this->view('student/quests/index', $data);
+            return;
         }
 
         $acceptance = $this->acceptanceModel->getByUserQuest($_SESSION['user_id'], $questId);

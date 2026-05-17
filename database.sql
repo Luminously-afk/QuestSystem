@@ -26,7 +26,7 @@ CREATE TABLE quests (
     category VARCHAR(50) NOT NULL,
     scope_type ENUM('all', 'year', 'multi') NOT NULL DEFAULT 'all',
     scope_years VARCHAR(20) NULL,
-    proof_type ENUM('text', 'image', 'image_text', 'multi_image', 'none') NOT NULL DEFAULT 'text',
+    proof_type ENUM('text', 'image', 'image_text', 'multi_image', 'none', 'qr') NOT NULL DEFAULT 'text',
     points INT NOT NULL,
     deadline DATETIME NOT NULL,
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
@@ -40,7 +40,7 @@ CREATE TABLE quest_submissions (
     submission_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     quest_id INT NOT NULL,
-    proof_type ENUM('text', 'image', 'image_text', 'multi_image', 'none') NOT NULL DEFAULT 'text',
+    proof_type ENUM('text', 'image', 'image_text', 'multi_image', 'none', 'qr') NOT NULL DEFAULT 'text',
     proof_text TEXT NULL,
     status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     remarks TEXT,
@@ -103,6 +103,23 @@ CREATE TABLE quest_submission_files (
     file_path VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (submission_id) REFERENCES quest_submissions(submission_id) ON DELETE CASCADE
+);
+
+CREATE TABLE quest_qr_tokens (
+    token_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    quest_id INT NOT NULL,
+    token VARCHAR(64) NOT NULL,
+    status ENUM('active', 'redeemed', 'expired') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    redeemed_at TIMESTAMP NULL DEFAULT NULL,
+    redeemed_by INT NULL,
+    expires_at TIMESTAMP NULL DEFAULT NULL,
+    UNIQUE KEY uniq_user_quest (user_id, quest_id),
+    UNIQUE KEY uniq_token (token),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (quest_id) REFERENCES quests(quest_id) ON DELETE CASCADE,
+    FOREIGN KEY (redeemed_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 CREATE TABLE penalties (
@@ -281,6 +298,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submissions TO 'quest_stu
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submission_files TO 'quest_student_user'@'localhost';
 GRANT SELECT, INSERT ON it_quest.reward_redemptions TO 'quest_student_user'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON it_quest.quest_acceptances TO 'quest_student_user'@'localhost';
+GRANT SELECT, INSERT ON it_quest.quest_qr_tokens TO 'quest_student_user'@'localhost';
 
 -- 2. Create the Admin App User
 CREATE USER IF NOT EXISTS 'quest_admin_user'@'localhost' IDENTIFIED BY 'admin_secure_pass123';
@@ -292,6 +310,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submissions TO 'quest_adm
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_submission_files TO 'quest_admin_user'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.reward_redemptions TO 'quest_admin_user'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_acceptances TO 'quest_admin_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.quest_qr_tokens TO 'quest_admin_user'@'localhost';
 -- Admins can view and insert penalties (via procedure) and audit logs
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.penalties TO 'quest_admin_user'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON it_quest.manual_points TO 'quest_admin_user'@'localhost';

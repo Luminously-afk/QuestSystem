@@ -67,6 +67,16 @@ class AuthController extends Controller {
                         $this->redirect('auth/changePassword?first=1');
                     }
 
+                    if (($_SESSION['role'] ?? '') === 'admin' && !empty($_SESSION['qr_token_pending'])) {
+                        $token = $_SESSION['qr_token_pending'];
+                        unset($_SESSION['qr_token_pending']);
+                        $this->redirect('admin/qr/' . urlencode($token));
+                    }
+
+                    if (!empty($_SESSION['qr_token_pending'])) {
+                        unset($_SESSION['qr_token_pending']);
+                    }
+
                     $this->redirectByRole($user['role']);
                 }
             }
@@ -105,6 +115,11 @@ class AuthController extends Controller {
                 $updated = $this->userModel->updatePassword($_SESSION['user_id'], $passwordHash);
                 if ($updated) {
                     $_SESSION['must_change_password'] = false;
+                    if (($_SESSION['role'] ?? '') === 'admin' && !empty($_SESSION['qr_token_pending'])) {
+                        $token = $_SESSION['qr_token_pending'];
+                        unset($_SESSION['qr_token_pending']);
+                        $this->redirect('admin/qr/' . urlencode($token));
+                    }
                     $this->redirectByRole($_SESSION['role'] ?? 'student');
                 } else {
                     $data['error'] = 'Password update failed. Please try again.';

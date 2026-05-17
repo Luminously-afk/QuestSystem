@@ -11,7 +11,8 @@
         'image' => 'Single Image',
         'image_text' => 'Image + Text',
         'multi_image' => 'Multiple Images',
-        'none' => 'No Proof'
+        'none' => 'No Proof',
+        'qr' => 'QR Code'
     ];
     $categoryLabels = [
         'Curricular' => 'Curricular',
@@ -202,6 +203,7 @@
                 <option value="image_text" <?php echo ($old['proof_type'] ?? '') === 'image_text' ? 'selected' : ''; ?>>IMAGE + TEXT</option>
                 <option value="multi_image" <?php echo ($old['proof_type'] ?? '') === 'multi_image' ? 'selected' : ''; ?>>MULTIPLE IMAGES</option>
                 <option value="none" <?php echo ($old['proof_type'] ?? '') === 'none' ? 'selected' : ''; ?>>NO PROOF</option>
+                <option value="qr" <?php echo ($old['proof_type'] ?? '') === 'qr' ? 'selected' : ''; ?>>QR CODE</option>
             </select>
         </div>
         <div class="flex flex-col gap-2">
@@ -275,6 +277,7 @@
                 <option value="image_text">IMAGE + TEXT</option>
                 <option value="multi_image">MULTIPLE IMAGES</option>
                 <option value="none">NO PROOF</option>
+                <option value="qr">QR CODE</option>
             </select>
         </div>
         <div class="flex flex-col gap-2">

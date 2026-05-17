@@ -6,7 +6,8 @@
         'image' => 'Single Image',
         'image_text' => 'Image + Text',
         'multi_image' => 'Multiple Images',
-        'none' => 'No Proof'
+        'none' => 'No Proof',
+        'qr' => 'QR Code'
     ];
 ?>
 
@@ -113,6 +114,8 @@
                             $isRejected = $submissionStatus === 'rejected';
                             $isPending = $submissionStatus === 'pending';
                             $isApproved = $submissionStatus === 'approved';
+                            $isQr = ($quest['proof_type'] ?? '') === 'qr';
+                            $qrToken = $quest['qr_token'] ?? '';
                         ?>
                         <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
                             <td class="p-4">
@@ -126,7 +129,11 @@
                             <td class="p-4 text-primary font-black">+<?php echo htmlspecialchars($quest['points']); ?> XP</td>
                             <td class="p-4 uppercase text-xs font-bold text-error"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($quest['deadline']))); ?></td>
                             <td class="p-4">
-                                <?php if ($submissionStatus === null): ?>
+                                <?php if ($isQr): ?>
+                                    <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase bg-[#ffd54f] text-on-surface">
+                                        <?php echo $qrToken ? 'AWAITING SCAN' : 'QR PENDING'; ?>
+                                    </span>
+                                <?php elseif ($submissionStatus === null): ?>
                                     <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase bg-zinc-200 text-zinc-600">NOT SUBMITTED</span>
                                 <?php else: ?>
                                     <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase
@@ -136,7 +143,15 @@
                                 <?php endif; ?>
                             </td>
                             <td class="p-4 text-right">
-                                <?php if ($submissionStatus === null || $isRejected): ?>
+                                <?php if ($isQr): ?>
+                                    <?php if ($qrToken): ?>
+                                        <button type="button" onclick="openQrModal(<?php echo htmlspecialchars(json_encode($quest)); ?>)" class="bg-primary text-white border-2 border-on-surface px-3 py-1 font-button-text hover:bg-on-primary-fixed-variant uppercase">
+                                            VIEW QR
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-[10px] text-outline font-bold uppercase">QR NOT READY</span>
+                                    <?php endif; ?>
+                                <?php elseif ($submissionStatus === null || $isRejected): ?>
                                     <button onclick="openSubmitModal(<?php echo htmlspecialchars(json_encode($quest)); ?>)" class="bg-primary text-white border-2 border-on-surface px-3 py-1 font-button-text hover:bg-on-primary-fixed-variant uppercase">
                                         <?php echo $isRejected ? 'RESUBMIT' : 'SUBMIT PROOF'; ?>
                                     </button>
@@ -189,6 +204,20 @@
     </form>
 </dialog>
 
+<!-- QR Code Dialog -->
+<dialog id="qr-code-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-sm w-full backdrop:bg-black/60">
+    <div class="bg-primary border-b-4 border-on-surface p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase">QUEST QR</h2>
+        <button onclick="closeModal('qr-code-modal')" class="text-white hover:text-zinc-200"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="p-6 flex flex-col items-center gap-4 font-mono">
+        <div class="text-xs uppercase font-bold text-on-surface" id="qr-quest-title"></div>
+        <img id="qr-image" src="" alt="Quest QR Code" class="h-44 w-44 border-2 border-on-surface bg-white" />
+        <div class="text-[10px] uppercase text-on-surface-variant">Token</div>
+        <div class="text-xs font-bold break-all text-center" id="qr-token-text"></div>
+    </div>
+</dialog>
+
 <script>
     var proofLabels = <?php echo json_encode($proofLabels); ?>;
 
@@ -219,6 +248,8 @@
             proofFilesContainer.classList.remove('hidden');
             proofFilesInput.setAttribute('multiple', 'multiple');
             proofFilesHelp.textContent = 'Upload one or more images.';
+        } else if (proofType === 'qr') {
+            proofFilesHelp.textContent = '';
         }
     }
 
@@ -241,6 +272,25 @@
         document.getElementById('submit-form').action = "<?php echo BASE_URL; ?>/student/submit/" + quest.quest_id;
 
         openModal('submit-quest-modal');
+    }
+
+    function openQrModal(quest) {
+        if (!quest.qr_token) {
+            return;
+        }
+        var baseUrl = "<?php echo BASE_URL; ?>";
+        var origin = window.location.origin;
+        var linkBase = origin + baseUrl;
+        if (linkBase.endsWith('/')) {
+            linkBase = linkBase.slice(0, -1);
+        }
+        var qrLink = linkBase + '/admin/qr/' + quest.qr_token;
+
+        document.getElementById('qr-quest-title').textContent = quest.title;
+        document.getElementById('qr-token-text').textContent = quest.qr_token;
+        document.getElementById('qr-image').src =
+            'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(qrLink);
+        openModal('qr-code-modal');
     }
 
     <?php if (!empty($open_submit_modal)): ?>

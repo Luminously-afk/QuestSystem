@@ -6,7 +6,8 @@
         'image' => 'Single Image',
         'image_text' => 'Image + Text',
         'multi_image' => 'Multiple Images',
-        'none' => 'No Proof'
+        'none' => 'No Proof',
+        'qr' => 'QR Code'
     ];
 ?>
 
@@ -40,9 +41,27 @@
     </div>
 <?php endif; ?>
 
+<?php if (isset($_GET['qr'])): ?>
+    <div class="bg-surface-container-low border-2 border-on-surface p-4 mb-8 font-mono font-bold uppercase pixel-shadow-sm text-on-surface">
+        <?php
+            if ($_GET['qr'] === 'redeemed') echo 'QR verified. Quest awarded.';
+            elseif ($_GET['qr'] === 'missing') echo 'QR token is required.';
+            elseif ($_GET['qr'] === 'invalid') echo 'Invalid QR token.';
+            elseif ($_GET['qr'] === 'used') echo 'This QR token was already used.';
+            elseif ($_GET['qr'] === 'expired') echo 'This QR token is expired or inactive.';
+            elseif ($_GET['qr'] === 'not_accepted') echo 'Quest is not in accepted status.';
+            elseif ($_GET['qr'] === 'already_awarded') echo 'Quest already awarded.';
+            else echo 'QR verification failed.';
+        ?>
+    </div>
+<?php endif; ?>
+
 <section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
     <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
         <h2 class="font-h2 text-on-surface uppercase font-black">ALL SUBMISSIONS</h2>
+        <button onclick="openQrScanModal()" class="bg-primary text-white border-2 border-on-surface px-3 py-2 font-button-text hover:bg-on-primary-fixed-variant uppercase">
+            SCAN QR
+        </button>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($submissions)): ?>
@@ -127,6 +146,41 @@
     </div>
 </section>
 
+<!-- QR Scan Dialog -->
+<dialog id="qr-scan-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 pixel-shadow max-w-md w-full backdrop:bg-black/60">
+    <div class="bg-primary border-b-2 border-on-surface p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase">QR SCAN</h2>
+        <button onclick="closeQrScanModal()" class="text-white hover:text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="<?php echo BASE_URL; ?>/admin/redeemQrToken" class="p-6 flex flex-col gap-4 font-mono">
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">CAMERA</label>
+            <div id="qr-reader" class="w-full h-48 border-2 border-on-surface bg-surface flex items-center justify-center overflow-hidden">
+                <video id="qr-video" class="w-full h-full object-cover" playsinline muted></video>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" onclick="startQrScanner()" class="flex-1 bg-surface-container border-2 border-on-surface p-2 font-button-text hover:bg-surface-container-low uppercase">START</button>
+                <button type="button" onclick="stopQrScanner()" class="flex-1 bg-zinc-200 border-2 border-on-surface p-2 font-button-text hover:bg-zinc-300 uppercase">STOP</button>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">UPLOAD QR IMAGE</label>
+            <input type="file" id="qr-file-input" accept="image/*" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary">
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">QR TOKEN</label>
+            <input type="text" name="qr_token" id="qr-token-input" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" placeholder="Scan or paste token" required>
+        </div>
+        <div id="qr-scan-status" class="text-[10px] uppercase text-on-surface-variant"></div>
+        <div id="qr-scan-error" class="text-[10px] uppercase text-error hidden"></div>
+        <div class="text-[10px] uppercase text-on-surface-variant">Once verified, the QR token becomes invalid.</div>
+        <div class="flex gap-4 mt-2">
+            <button type="button" onclick="closeQrScanModal()" class="flex-1 bg-surface-container border-2 border-on-surface p-3 font-button-text hover:bg-surface-container-low transition-colors">CANCEL</button>
+            <button type="submit" class="flex-1 bg-primary text-white border-2 border-on-surface p-3 font-button-text hover:bg-on-primary-fixed-variant transition-colors">VERIFY</button>
+        </div>
+    </form>
+</dialog>
+
 <!-- Review Dialog -->
 <dialog id="review-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 pixel-shadow max-w-md w-full backdrop:bg-black/60">
     <div class="bg-on-surface border-b-2 border-on-surface p-4 flex justify-between items-center">
@@ -163,7 +217,17 @@
     </div>
 </dialog>
 
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
+    var qrScanner = null;
+    var qrScannerRunning = false;
+    var qrVideo = null;
+    var qrStream = null;
+    var qrDetectInterval = null;
+    var qrDetector = null;
+    var qrScanMode = null;
+    var html5QrcodeLoader = null;
+
     function openReviewModal(submission) {
         document.getElementById('review-submission-id').value = submission.submission_id;
         openModal('review-modal');
@@ -172,6 +236,318 @@
     function openImageModal(src) {
         document.getElementById('preview-image').src = src;
         openModal('image-modal');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        var qrInput = document.getElementById('qr-token-input');
+        var fileInput = document.getElementById('qr-file-input');
+        var qrDialog = document.getElementById('qr-scan-modal');
+        qrVideo = document.getElementById('qr-video');
+
+        if (qrInput) {
+            qrInput.value = '';
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (event) => {
+                var file = event.target.files ? event.target.files[0] : null;
+                if (!file) {
+                    return;
+                }
+                scanQrFile(file);
+            });
+        }
+
+        if (qrDialog) {
+            qrDialog.addEventListener('close', () => {
+                stopQrScanner();
+            });
+        }
+    });
+
+    function openQrScanModal() {
+        clearQrScanMessages();
+        var qrInput = document.getElementById('qr-token-input');
+        if (qrInput) {
+            qrInput.value = '';
+            qrInput.focus();
+        }
+        openModal('qr-scan-modal');
+    }
+
+    function closeQrScanModal() {
+        stopQrScanner();
+        closeModal('qr-scan-modal');
+    }
+
+    function ensureQrScanner() {
+        if (!qrScanner && typeof Html5Qrcode !== 'undefined') {
+            qrScanner = new Html5Qrcode('qr-reader');
+        }
+    }
+
+    function startQrScanner() {
+        clearQrScanMessages();
+        if (supportsBarcodeDetector()) {
+            startBarcodeScanner();
+            return;
+        }
+        loadHtml5Qrcode()
+            .then(() => {
+                startHtml5Scanner();
+            })
+            .catch(() => {
+                setQrScanError('Camera scanning is not supported here. Upload a QR image or paste the token.');
+            });
+    }
+
+    function stopQrScanner() {
+        stopBarcodeScanner();
+        stopHtml5Scanner();
+    }
+
+    function scanQrFile(file) {
+        clearQrScanMessages();
+        if (supportsBarcodeDetector()) {
+            scanQrFileWithBarcodeDetector(file);
+            return;
+        }
+        loadHtml5Qrcode()
+            .then(() => {
+                ensureQrScanner();
+                qrScanner
+                    .scanFile(file, true)
+                    .then((decodedText) => {
+                        handleQrResult(decodedText);
+                    })
+                    .catch(() => {
+                        setQrScanError('Unable to read QR from image.');
+                    });
+            })
+            .catch(() => {
+                setQrScanError('QR scanning is not supported here. Paste the token instead.');
+            });
+    }
+
+    function loadHtml5Qrcode() {
+        if (typeof Html5Qrcode !== 'undefined') {
+            return Promise.resolve();
+        }
+        if (html5QrcodeLoader) {
+            return html5QrcodeLoader;
+        }
+        html5QrcodeLoader = new Promise((resolve, reject) => {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.10/minified/html5-qrcode.min.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject();
+            document.head.appendChild(script);
+        });
+        return html5QrcodeLoader;
+    }
+
+    function supportsBarcodeDetector() {
+        return typeof window.BarcodeDetector !== 'undefined';
+    }
+
+    function startBarcodeScanner() {
+        if (!qrVideo) {
+            setQrScanError('Camera preview unavailable.');
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setQrScanError('Camera API is not available.');
+            return;
+        }
+
+        if (qrScanMode === 'barcode') {
+            return;
+        }
+
+        qrDetector = qrDetector || new BarcodeDetector({ formats: ['qr_code'] });
+        qrScanMode = 'barcode';
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then((stream) => {
+                qrStream = stream;
+                qrVideo.srcObject = stream;
+                qrVideo.play();
+                setQrScanStatus('Camera active. Hold a QR code in view.');
+
+                qrDetectInterval = setInterval(async () => {
+                    try {
+                        if (!qrVideo || qrVideo.readyState < 2) {
+                            return;
+                        }
+                        var codes = await qrDetector.detect(qrVideo);
+                        if (codes && codes.length > 0) {
+                            handleQrResult(codes[0].rawValue || codes[0].value || '');
+                            stopBarcodeScanner();
+                        }
+                    } catch (error) {
+                        // Ignore detection errors.
+                    }
+                }, 400);
+            })
+            .catch(() => {
+                qrScanMode = null;
+                setQrScanError('Camera permission denied or unavailable.');
+            });
+    }
+
+    function stopBarcodeScanner() {
+        if (qrScanMode !== 'barcode') {
+            return;
+        }
+        qrScanMode = null;
+        if (qrDetectInterval) {
+            clearInterval(qrDetectInterval);
+            qrDetectInterval = null;
+        }
+        if (qrVideo) {
+            qrVideo.pause();
+            qrVideo.srcObject = null;
+        }
+        if (qrStream) {
+            qrStream.getTracks().forEach((track) => track.stop());
+            qrStream = null;
+        }
+    }
+
+    function startHtml5Scanner() {
+        if (typeof Html5Qrcode === 'undefined') {
+            setQrScanError('QR scanner library failed to load.');
+            return;
+        }
+        ensureQrScanner();
+
+        Html5Qrcode.getCameras().then((cameras) => {
+            if (!cameras || cameras.length === 0) {
+                setQrScanError('No camera detected.');
+                return;
+            }
+            if (qrScannerRunning) {
+                return;
+            }
+            qrScannerRunning = true;
+            qrScanMode = 'html5';
+            qrScanner
+                .start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: 200 },
+                    (decodedText) => {
+                        handleQrResult(decodedText);
+                        stopHtml5Scanner();
+                    },
+                    () => {}
+                )
+                .catch(() => {
+                    qrScannerRunning = false;
+                    qrScanMode = null;
+                    setQrScanError('Unable to start camera scan.');
+                });
+        }).catch(() => {
+            setQrScanError('Camera permission denied.');
+        });
+    }
+
+    function stopHtml5Scanner() {
+        if (!qrScanner || !qrScannerRunning) {
+            return;
+        }
+        qrScanner
+            .stop()
+            .then(() => {
+                qrScannerRunning = false;
+                qrScanMode = null;
+                qrScanner.clear();
+            })
+            .catch(() => {
+                qrScannerRunning = false;
+                qrScanMode = null;
+            });
+    }
+
+    function scanQrFileWithBarcodeDetector(file) {
+        if (!supportsBarcodeDetector()) {
+            setQrScanError('QR scanning is not supported here.');
+            return;
+        }
+        qrDetector = qrDetector || new BarcodeDetector({ formats: ['qr_code'] });
+        createImageBitmap(file)
+            .then((bitmap) => qrDetector.detect(bitmap).finally(() => {
+                if (bitmap.close) {
+                    bitmap.close();
+                }
+            }))
+            .then((codes) => {
+                if (codes && codes.length > 0) {
+                    handleQrResult(codes[0].rawValue || codes[0].value || '');
+                } else {
+                    setQrScanError('Unable to read QR from image.');
+                }
+            })
+            .catch(() => {
+                setQrScanError('Unable to read QR from image.');
+            });
+    }
+
+    function handleQrResult(decodedText) {
+        var token = extractQrToken(decodedText);
+        if (!token) {
+            setQrScanError('QR code does not include a token.');
+            return;
+        }
+        var qrInput = document.getElementById('qr-token-input');
+        if (qrInput) {
+            qrInput.value = token;
+        }
+        setQrScanStatus('Token captured. Click verify to redeem.');
+    }
+
+    function extractQrToken(decodedText) {
+        var text = (decodedText || '').trim();
+        if (text === '') {
+            return '';
+        }
+
+        try {
+            var url = new URL(text, window.location.origin);
+            var parts = url.pathname.split('/').filter(Boolean);
+            for (var i = 0; i < parts.length - 2; i++) {
+                if (parts[i] === 'admin' && parts[i + 1] === 'qr' && parts[i + 2]) {
+                    return parts[i + 2];
+                }
+            }
+        } catch (error) {
+            // Not a URL
+        }
+
+        return text;
+    }
+
+    function clearQrScanMessages() {
+        setQrScanStatus('');
+        setQrScanError('');
+    }
+
+    function setQrScanStatus(message) {
+        var statusEl = document.getElementById('qr-scan-status');
+        if (!statusEl) {
+            return;
+        }
+        statusEl.textContent = message;
+    }
+
+    function setQrScanError(message) {
+        var errorEl = document.getElementById('qr-scan-error');
+        if (!errorEl) {
+            return;
+        }
+        errorEl.textContent = message;
+        errorEl.classList.toggle('hidden', message === '');
     }
 </script>
 

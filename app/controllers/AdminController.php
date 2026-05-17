@@ -8,6 +8,7 @@ class AdminController extends Controller {
     private $auditLogModel;
     private $acceptanceModel;
     private $penaltyModel;
+    private $qrTokenModel;
 
     public function __construct() {
         $this->questModel = new Quest();
@@ -18,6 +19,7 @@ class AdminController extends Controller {
         $this->auditLogModel = new AuditLog();
         $this->acceptanceModel = new Acceptance();
         $this->penaltyModel = new Penalty();
+        $this->qrTokenModel = new QuestQrToken();
     }
 
     public function index() {
@@ -300,6 +302,37 @@ class AdminController extends Controller {
         }
 
         $this->redirect('admin/submissions?error=' . $result['error']);
+    }
+
+    public function redeemQrToken() {
+        $this->requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/submissions');
+        }
+
+        $token = trim($_POST['qr_token'] ?? '');
+        $result = $this->redeemQrTokenValue($token, $_SESSION['user_id']);
+        $this->redirect('admin/submissions?qr=' . $result);
+    }
+
+    public function qr($token = null) {
+        if ($token === null) {
+            $this->redirect('admin/submissions?qr=missing');
+        }
+
+        if (!$this->isAdmin()) {
+            $_SESSION['qr_token_pending'] = $token;
+            $this->redirect('auth/login?qr=1');
+        }
+
+        if (!empty($_SESSION['must_change_password'])) {
+            $_SESSION['qr_token_pending'] = $token;
+            $this->redirect('auth/changePassword?first=1');
+        }
+
+        $result = $this->redeemQrTokenValue($token, $_SESSION['user_id']);
+        $this->redirect('admin/submissions?qr=' . $result);
     }
 
     public function rewards() {
@@ -935,8 +968,93 @@ class AdminController extends Controller {
     }
 
     private function normalizeProofType($proofType) {
-        $allowed = ['text', 'image', 'image_text', 'multi_image', 'none'];
+        $allowed = ['text', 'image', 'image_text', 'multi_image', 'none', 'qr'];
         return in_array($proofType, $allowed, true) ? $proofType : 'text';
+    }
+
+    private function redeemQrTokenValue($token, $adminId) {
+        $token = trim((string) $token);
+        if ($token === '') {
+            return 'missing';
+        }
+
+        $qrToken = $this->qrTokenModel->getByToken($token);
+        if (!$qrToken) {
+            return 'invalid';
+        }
+
+        $status = $qrToken['status'] ?? '';
+        if ($status === 'redeemed') {
+            return 'used';
+        }
+        if ($status === 'expired') {
+            return 'expired';
+        }
+        if ($status !== 'active') {
+            return 'used';
+        }
+
+        if (!empty($qrToken['expires_at']) && strtotime($qrToken['expires_at']) < time()) {
+            $this->qrTokenModel->markExpired($qrToken['token_id']);
+            return 'expired';
+        }
+
+        $quest = $this->questModel->getById($qrToken['quest_id']);
+        if (!$quest || ($quest['proof_type'] ?? '') !== 'qr') {
+            return 'invalid';
+        }
+
+        if (($quest['status'] ?? '') !== 'active' || strtotime($quest['deadline']) < time()) {
+            return 'expired';
+        }
+
+        $acceptance = $this->acceptanceModel->getByUserQuest($qrToken['user_id'], $qrToken['quest_id']);
+        if (!$acceptance || ($acceptance['status'] ?? '') !== 'accepted') {
+            return 'not_accepted';
+        }
+
+        $existing = $this->submissionModel->getByUserQuest($qrToken['user_id'], $qrToken['quest_id']);
+        if ($existing && ($existing['status'] ?? '') === 'approved') {
+            return 'already_awarded';
+        }
+
+        if ($existing && ($existing['status'] ?? '') === 'rejected') {
+            $this->submissionModel->resubmit($existing['submission_id'], 'qr', 'QR verification');
+            $submissionId = $existing['submission_id'];
+        } elseif ($existing) {
+            $submissionId = $existing['submission_id'];
+        } else {
+            $submissionId = $this->submissionModel->create(
+                $qrToken['user_id'],
+                $qrToken['quest_id'],
+                'qr',
+                'QR verification'
+            );
+        }
+
+        if (!$submissionId) {
+            return 'failed';
+        }
+
+        $review = $this->submissionModel->review($submissionId, 'approved', 'QR verified', $adminId);
+        if (!$review['success']) {
+            return 'failed';
+        }
+
+        $this->acceptanceModel->markCompleted($qrToken['user_id'], $qrToken['quest_id']);
+        $this->qrTokenModel->markRedeemed($qrToken['token_id'], $adminId);
+
+        $student = $this->userModel->getById($qrToken['user_id']);
+        $studentLabel = $student
+            ? $student['full_name'] . ' (' . ($student['student_id'] ?: 'N/A') . ')'
+            : 'user ' . $qrToken['user_id'];
+        $this->auditLogModel->create(
+            $adminId,
+            'qr_redeem',
+            'Redeemed QR quest for ' . $studentLabel . ': ' . ($quest['title'] ?? ('quest ' . $qrToken['quest_id']))
+        );
+
+        return 'redeemed';
     }
 
     private function generateSimplePassword($length = 8) {
