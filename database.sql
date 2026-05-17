@@ -24,10 +24,12 @@ CREATE TABLE quests (
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     category VARCHAR(50) NOT NULL,
+    difficulty ENUM('easy', 'medium', 'hard') NOT NULL DEFAULT 'medium',
     scope_type ENUM('all', 'year', 'multi') NOT NULL DEFAULT 'all',
     scope_years VARCHAR(20) NULL,
     proof_type ENUM('text', 'image', 'image_text', 'multi_image', 'none', 'qr') NOT NULL DEFAULT 'text',
     points INT NOT NULL,
+    max_slots INT NULL DEFAULT NULL,
     deadline DATETIME NOT NULL,
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
     created_by INT NOT NULL,
@@ -57,6 +59,7 @@ CREATE TABLE rewards (
     reward_name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     required_points INT NOT NULL,
+    stock INT NULL DEFAULT NULL,
     status ENUM('available', 'unavailable') NOT NULL DEFAULT 'available',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_required_points CHECK (required_points > 0)
@@ -184,9 +187,11 @@ SELECT
     u.student_id,
     u.year_level,
     u.total_points,
-    COUNT(s.submission_id) AS completed_quests
+    COUNT(s.submission_id) AS completed_quests,
+    SUM(CASE WHEN q.category = 'Event' THEN 1 ELSE 0 END) AS event_participations
 FROM users u
 LEFT JOIN quest_submissions s ON u.user_id = s.user_id AND s.status = 'approved'
+LEFT JOIN quests q ON s.quest_id = q.quest_id
 WHERE u.role = 'student' AND u.is_active = 1
 GROUP BY u.user_id
 ORDER BY u.total_points DESC, completed_quests DESC;

@@ -61,9 +61,14 @@
         <a href="<?php echo BASE_URL; ?>/student/redemptions" class="bg-surface-container-lowest pixel-border pixel-shadow p-lg flex flex-col items-center gap-md hover:bg-primary-container transition-all pressed-active">
             <span class="material-symbols-outlined text-5xl text-on-surface">history</span>
             <span class="font-button-text text-button-text text-center text-on-surface">REDEMPTION HISTORY</span>
-        <a href="<?php echo BASE_URL; ?>/student/history" class="bg-surface-container-lowest pixel-border pixel-shadow p-lg flex flex-col items-center gap-md hover:bg-primary-container transition-all pressed-active sm:col-span-2 md:col-span-1 md:col-start-auto">
+        </a>
+        <a href="<?php echo BASE_URL; ?>/student/history" class="bg-surface-container-lowest pixel-border pixel-shadow p-lg flex flex-col items-center gap-md hover:bg-primary-container transition-all pressed-active">
             <span class="material-symbols-outlined text-5xl text-on-surface">receipt_long</span>
             <span class="font-button-text text-button-text text-center text-on-surface">POINT HISTORY</span>
+        </a>
+        <a href="<?php echo BASE_URL; ?>/student/profile" class="bg-surface-container-lowest pixel-border pixel-shadow p-lg flex flex-col items-center gap-md hover:bg-primary-container transition-all pressed-active">
+            <span class="material-symbols-outlined text-5xl text-on-surface">person</span>
+            <span class="font-button-text text-button-text text-center text-on-surface">MY PROFILE</span>
         </a>
     </div>
 </section>

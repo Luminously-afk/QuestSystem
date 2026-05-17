@@ -28,6 +28,12 @@
     </div>
 <?php endif; ?>
 
+<?php if (isset($_GET['error']) && $_GET['error'] === 'slots_full'): ?>
+    <div class="bg-error-container border-2 border-on-surface p-4 mb-8 font-mono font-bold uppercase pixel-shadow-sm text-on-surface">
+        Quest is full. All slots have been taken.
+    </div>
+<?php endif; ?>
+
 <section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow mb-10">
     <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
         <h2 class="font-h2 text-on-surface uppercase font-black">ALL QUESTS</h2>
@@ -41,8 +47,10 @@
                     <tr>
                         <th class="p-4 uppercase font-black">TITLE</th>
                         <th class="p-4 uppercase font-black">CATEGORY</th>
+                        <th class="p-4 uppercase font-black">DIFFICULTY</th>
                         <th class="p-4 uppercase font-black">PROOF</th>
                         <th class="p-4 uppercase font-black">POINTS</th>
+                        <th class="p-4 uppercase font-black">SLOTS</th>
                         <th class="p-4 uppercase font-black">DEADLINE</th>
                         <th class="p-4 uppercase font-black text-right">ACTION</th>
                     </tr>
@@ -65,10 +73,24 @@
                                 <div class="text-xs text-secondary mt-1"><?php echo htmlspecialchars($quest['description']); ?></div>
                             </td>
                             <td class="p-4 uppercase font-bold text-secondary"><?php echo htmlspecialchars($quest['category']); ?></td>
+                            <td class="p-4 uppercase text-xs font-bold <?php echo ($quest['difficulty'] ?? '') === 'easy' ? 'text-[#1e6d12]' : (($quest['difficulty'] ?? '') === 'hard' ? 'text-error' : 'text-amber-600'); ?>">
+                                <?php echo htmlspecialchars(ucfirst($quest['difficulty'] ?? 'medium')); ?>
+                            </td>
                             <td class="p-4 uppercase text-xs font-bold text-zinc-600">
                                 <?php echo htmlspecialchars($proofLabels[$quest['proof_type']] ?? 'Text'); ?>
                             </td>
                             <td class="p-4 text-primary font-black">+<?php echo htmlspecialchars($quest['points']); ?> XP</td>
+                            <td class="p-4 text-xs font-bold text-zinc-600">
+                                <?php
+                                    $maxSlots = $quest['max_slots'] ?? null;
+                                    $acceptCount = $quest['acceptance_count'] ?? 0;
+                                    if ($maxSlots === null) {
+                                        echo '∞';
+                                    } else {
+                                        echo htmlspecialchars($acceptCount . '/' . $maxSlots);
+                                    }
+                                ?>
+                            </td>
                             <td class="p-4 uppercase text-xs font-bold text-error"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($quest['deadline']))); ?></td>
                             <td class="p-4 text-right">
                                 <?php if ($isAvailable): ?>

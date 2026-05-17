@@ -83,9 +83,11 @@ class User extends Model {
         $orderClause = "ORDER BY total_points DESC, completed_count DESC, full_name ASC";
         if ($sortBy === 'quests') {
             $orderClause = "ORDER BY completed_count DESC, total_points DESC, full_name ASC";
+        } elseif ($sortBy === 'events') {
+            $orderClause = "ORDER BY event_count DESC, completed_count DESC, full_name ASC";
         }
         $stmt = $this->db->prepare(
-            "SELECT user_id, full_name, total_points, completed_quests AS completed_count
+            "SELECT user_id, full_name, total_points, completed_quests AS completed_count, event_participations AS event_count
              FROM vw_student_leaderboard
              $orderClause"
         );
@@ -215,6 +217,57 @@ class User extends Model {
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
         $stmt->execute();
         return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getFullStudentProfile($userId) {
+        $user = $this->getById($userId);
+        if (!$user) {
+            return null;
+        }
+
+        // Completed quests count
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt FROM quest_submissions WHERE user_id = :uid AND status = 'approved'"
+        );
+        $stmt->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $user['completed_quests'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
+
+        // Pending submissions
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt FROM quest_submissions WHERE user_id = :uid AND status = 'pending'"
+        );
+        $stmt->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $user['pending_submissions'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
+
+        // Redeemed rewards (approved)
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt FROM reward_redemptions WHERE user_id = :uid AND status = 'approved'"
+        );
+        $stmt->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $user['redeemed_rewards'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
+
+        // Penalties received
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt, COALESCE(SUM(points_deducted), 0) AS total_deducted FROM penalties WHERE user_id = :uid"
+        );
+        $stmt->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $penaltyRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user['penalties_count'] = (int)($penaltyRow['cnt'] ?? 0);
+        $user['penalties_total'] = (int)($penaltyRow['total_deducted'] ?? 0);
+
+        // Accepted quests in progress
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt FROM quest_acceptances WHERE user_id = :uid AND status = 'accepted'"
+        );
+        $stmt->bindParam(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $user['active_quests'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] ?? 0);
+
+        return $user;
     }
 }
 ?>

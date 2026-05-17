@@ -59,10 +59,12 @@ class AdminController extends Controller {
                 'title' => '',
                 'description' => '',
                 'category' => '',
+                'difficulty' => 'medium',
                 'scope_type' => 'all',
                 'scope_years' => [],
                 'proof_type' => 'text',
                 'points' => '',
+                'max_slots' => '',
                 'deadline' => '',
                 'status' => 'active'
             ]
@@ -75,10 +77,12 @@ class AdminController extends Controller {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $category = trim($_POST['category'] ?? '');
+        $difficulty = $_POST['difficulty'] ?? 'medium';
         $scopeType = $_POST['scope_type'] ?? 'all';
         $scopeYears = $_POST['scope_years'] ?? [];
         $proofType = $_POST['proof_type'] ?? 'text';
         $pointsRaw = $_POST['points'] ?? '';
+        $maxSlotsRaw = trim($_POST['max_slots'] ?? '');
         $deadlineRaw = trim($_POST['deadline'] ?? '');
         $status = $_POST['status'] ?? 'active';
 
@@ -86,17 +90,21 @@ class AdminController extends Controller {
             'title' => $title,
             'description' => $description,
             'category' => $category,
+            'difficulty' => $difficulty,
             'scope_type' => $scopeType,
             'scope_years' => is_array($scopeYears) ? $scopeYears : [],
             'proof_type' => $proofType,
             'points' => $pointsRaw,
+            'max_slots' => $maxSlotsRaw,
             'deadline' => $deadlineRaw,
             'status' => $status
         ];
 
         $points = (int) $pointsRaw;
+        $maxSlots = $maxSlotsRaw === '' ? null : (int) $maxSlotsRaw;
         $deadline = $this->normalizeDeadline($deadlineRaw);
         $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+        $difficulty = in_array($difficulty, ['easy', 'medium', 'hard'], true) ? $difficulty : 'medium';
         $scopeResult = $this->normalizeScope($scopeType, $scopeYears);
         $proofType = $this->normalizeProofType($proofType);
 
@@ -113,10 +121,12 @@ class AdminController extends Controller {
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
+                'difficulty' => $difficulty,
                 'scope_type' => $scopeResult['scope_type'],
                 'scope_years' => $scopeResult['scope_years'],
                 'proof_type' => $proofType,
                 'points' => $points,
+                'max_slots' => $maxSlots,
                 'deadline' => $deadline,
                 'status' => $status,
                 'created_by' => $_SESSION['user_id']
@@ -166,16 +176,20 @@ class AdminController extends Controller {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $category = trim($_POST['category'] ?? '');
+        $difficulty = $_POST['difficulty'] ?? $quest['difficulty'] ?? 'medium';
         $scopeType = $_POST['scope_type'] ?? $quest['scope_type'];
         $scopeYears = $_POST['scope_years'] ?? [];
         $proofType = $_POST['proof_type'] ?? $quest['proof_type'];
         $pointsRaw = $_POST['points'] ?? '';
+        $maxSlotsRaw = trim($_POST['max_slots'] ?? '');
         $deadlineRaw = trim($_POST['deadline'] ?? $quest['deadline_input']);
         $status = $_POST['status'] ?? $quest['status'];
 
         $points = (int) $pointsRaw;
+        $maxSlots = $maxSlotsRaw === '' ? null : (int) $maxSlotsRaw;
         $deadline = $this->normalizeDeadline($deadlineRaw);
         $status = in_array($status, ['active', 'inactive'], true) ? $status : 'inactive';
+        $difficulty = in_array($difficulty, ['easy', 'medium', 'hard'], true) ? $difficulty : 'medium';
         $scopeResult = $this->normalizeScope($scopeType, $scopeYears);
         $proofType = $this->normalizeProofType($proofType);
 
@@ -184,10 +198,12 @@ class AdminController extends Controller {
             'title' => $title,
             'description' => $description,
             'category' => $category,
+            'difficulty' => $difficulty,
             'scope_type' => $scopeType,
             'scope_years' => is_array($scopeYears) ? $scopeYears : [],
             'proof_type' => $proofType,
             'points' => $pointsRaw,
+            'max_slots' => $maxSlotsRaw,
             'deadline_input' => $deadlineRaw,
             'status' => $status
         ];
@@ -205,10 +221,12 @@ class AdminController extends Controller {
                 'title' => $title,
                 'description' => $description,
                 'category' => $category,
+                'difficulty' => $difficulty,
                 'scope_type' => $scopeResult['scope_type'],
                 'scope_years' => $scopeResult['scope_years'],
                 'proof_type' => $proofType,
                 'points' => $points,
+                'max_slots' => $maxSlots,
                 'deadline' => $deadline,
                 'status' => $status
             ]);
@@ -353,6 +371,7 @@ class AdminController extends Controller {
                 'reward_name' => '',
                 'description' => '',
                 'required_points' => '',
+                'stock' => '',
                 'status' => 'available'
             ]
         ];
@@ -364,16 +383,19 @@ class AdminController extends Controller {
         $rewardName = trim($_POST['reward_name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $pointsRaw = $_POST['required_points'] ?? '';
+        $stockRaw = trim($_POST['stock'] ?? '');
         $status = $_POST['status'] ?? 'available';
 
         $data['old'] = [
             'reward_name' => $rewardName,
             'description' => $description,
             'required_points' => $pointsRaw,
+            'stock' => $stockRaw,
             'status' => $status
         ];
 
         $points = (int) $pointsRaw;
+        $stock = $stockRaw === '' ? null : (int) $stockRaw;
         $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
 
         if ($rewardName === '' || $description === '') {
@@ -385,6 +407,7 @@ class AdminController extends Controller {
                 'reward_name' => $rewardName,
                 'description' => $description,
                 'required_points' => $points,
+                'stock' => $stock,
                 'status' => $status
             ]);
 
@@ -430,9 +453,11 @@ class AdminController extends Controller {
         $rewardName = trim($_POST['reward_name'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $pointsRaw = $_POST['required_points'] ?? '';
+        $stockRaw = trim($_POST['stock'] ?? '');
         $status = $_POST['status'] ?? $reward['status'];
 
         $points = (int) $pointsRaw;
+        $stock = $stockRaw === '' ? null : (int) $stockRaw;
         $status = in_array($status, ['available', 'unavailable'], true) ? $status : 'unavailable';
 
         $data['reward'] = [
@@ -440,6 +465,7 @@ class AdminController extends Controller {
             'reward_name' => $rewardName,
             'description' => $description,
             'required_points' => $pointsRaw,
+            'stock' => $stockRaw,
             'status' => $status
         ];
 
@@ -452,6 +478,7 @@ class AdminController extends Controller {
                 'reward_name' => $rewardName,
                 'description' => $description,
                 'required_points' => $points,
+                'stock' => $stock,
                 'status' => $status
             ]);
 
@@ -540,10 +567,12 @@ class AdminController extends Controller {
 
         $leaderboardPoints = $this->userModel->getLeaderboard('points');
         $leaderboardQuests = $this->userModel->getLeaderboard('quests');
+        $leaderboardEvents = $this->userModel->getLeaderboard('events');
         
         $this->view('admin/leaderboard', [
             'leaderboard_points' => $leaderboardPoints,
-            'leaderboard_quests' => $leaderboardQuests
+            'leaderboard_quests' => $leaderboardQuests,
+            'leaderboard_events' => $leaderboardEvents
         ]);
     }
 

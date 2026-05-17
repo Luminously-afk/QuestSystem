@@ -39,6 +39,18 @@ class StudentController extends Controller {
         ]);
     }
 
+    public function profile() {
+        $this->requireStudent();
+
+        $profile = $this->userModel->getFullStudentProfile($_SESSION['user_id']);
+        $pointHistory = $this->userModel->getPointHistory($_SESSION['user_id']);
+        
+        $this->view('student/profile', [
+            'profile' => $profile,
+            'point_history' => $pointHistory
+        ]);
+    }
+
     public function quests() {
         $this->requireStudent();
 
@@ -81,6 +93,14 @@ class StudentController extends Controller {
         $existing = $this->acceptanceModel->getByUserQuest($_SESSION['user_id'], $questId);
         if ($existing) {
             $this->redirect('student/quests?error=already_accepted');
+        }
+
+        // Check quest slot limit
+        if ($questToAccept && !empty($questToAccept['max_slots'])) {
+            $acceptanceCount = $this->questModel->getAcceptanceCount($questId);
+            if ($acceptanceCount >= (int)$questToAccept['max_slots']) {
+                $this->redirect('student/quests?error=slots_full');
+            }
         }
 
         $accepted = $this->acceptanceModel->accept($_SESSION['user_id'], $questId);
@@ -294,10 +314,12 @@ class StudentController extends Controller {
 
         $leaderboardPoints = $this->userModel->getLeaderboard('points');
         $leaderboardQuests = $this->userModel->getLeaderboard('quests');
+        $leaderboardEvents = $this->userModel->getLeaderboard('events');
         
         $this->view('student/leaderboard', [
             'leaderboard_points' => $leaderboardPoints,
-            'leaderboard_quests' => $leaderboardQuests
+            'leaderboard_quests' => $leaderboardQuests,
+            'leaderboard_events' => $leaderboardEvents
         ]);
     }
 

@@ -14,15 +14,13 @@
         'none' => 'No Proof',
         'qr' => 'QR Code'
     ];
-    $categoryLabels = [
-        'Curricular' => 'Curricular',
-        'Extra-Curricular' => 'Extra-Curricular',
-        'extra cur' => 'Extra-Curricular',
-        'Co-Curricular' => 'Co-Curricular',
-        'co-curr' => 'Co-Curricular'
+    $difficultyLabels = [
+        'easy' => 'Easy',
+        'medium' => 'Medium',
+        'hard' => 'Hard'
     ];
+    $allCategories = ['Academic', 'Event', 'Volunteer', 'Competition', 'Attendance', 'Bonus'];
     $categoryOld = $old['category'] ?? '';
-    $categoryOld = $categoryLabels[$categoryOld] ?? $categoryOld;
 ?>
 
 <!-- Breadcrumbs -->
@@ -75,9 +73,9 @@
                 <label class="text-[10px] uppercase font-black text-on-surface">Category</label>
                 <select id="quest-category-filter" class="border-2 border-on-surface p-2 text-xs uppercase bg-white focus:outline-none focus:border-primary">
                     <option value="all">All</option>
-                    <option value="Curricular">Curricular</option>
-                    <option value="Extra-Curricular">Extra-Curricular</option>
-                    <option value="Co-Curricular">Co-Curricular</option>
+                    <?php foreach ($allCategories as $cat): ?>
+                        <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
@@ -91,7 +89,9 @@
                     <tr>
                         <th class="p-4 uppercase font-black">TITLE</th>
                         <th class="p-4 uppercase font-black">CATEGORY</th>
+                        <th class="p-4 uppercase font-black">DIFFICULTY</th>
                         <th class="p-4 uppercase font-black">POINTS</th>
+                        <th class="p-4 uppercase font-black">SLOTS</th>
                         <th class="p-4 uppercase font-black">SCOPE</th>
                         <th class="p-4 uppercase font-black">PROOF</th>
                         <th class="p-4 uppercase font-black">DEADLINE</th>
@@ -107,13 +107,17 @@
                                 $scopeText .= ' (' . $quest['scope_years'] . ')';
                             }
                             $proofText = $proofLabels[$quest['proof_type']] ?? 'Text';
-                            $categoryText = $categoryLabels[$quest['category']] ?? $quest['category'];
+                            $categoryText = $quest['category'];
+                            $diffText = $difficultyLabels[$quest['difficulty'] ?? 'medium'] ?? 'Medium';
+                            $slotsText = ($quest['max_slots'] ?? null) === null ? '∞' : $quest['max_slots'];
                             $searchText = strtolower($quest['title'] . ' ' . $categoryText . ' ' . $scopeText . ' ' . $proofText . ' ' . ($quest['status'] ?? ''));
                         ?>
                         <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low" data-quest-row data-status="<?php echo htmlspecialchars($quest['status']); ?>" data-category="<?php echo htmlspecialchars($categoryText); ?>" data-search="<?php echo htmlspecialchars($searchText); ?>">
                             <td class="p-4 font-bold text-on-surface"><?php echo htmlspecialchars($quest['title']); ?></td>
                             <td class="p-4 uppercase"><?php echo htmlspecialchars($categoryText); ?></td>
+                            <td class="p-4 uppercase text-xs font-bold <?php echo ($quest['difficulty'] ?? '') === 'easy' ? 'text-[#1e6d12]' : (($quest['difficulty'] ?? '') === 'hard' ? 'text-error' : 'text-amber-600'); ?>"><?php echo htmlspecialchars($diffText); ?></td>
                             <td class="p-4 text-primary font-black"><?php echo htmlspecialchars($quest['points']); ?></td>
+                            <td class="p-4 text-xs font-bold text-zinc-600"><?php echo htmlspecialchars($slotsText); ?></td>
                             <td class="p-4 text-xs uppercase font-bold text-zinc-600">
                                 <?php echo htmlspecialchars($scopeText); ?>
                             </td>
@@ -140,7 +144,7 @@
                         </tr>
                     <?php endforeach; ?>
                     <tr id="quest-empty-row" class="hidden">
-                        <td colspan="8" class="p-6 font-mono text-sm uppercase">No matching quests.</td>
+                        <td colspan="10" class="p-6 font-mono text-sm uppercase">No matching quests.</td>
                     </tr>
                 </tbody>
             </table>
@@ -167,9 +171,17 @@
             <label class="text-xs font-bold uppercase">CATEGORY</label>
             <select name="category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
                 <option value="" disabled <?php echo empty($categoryOld) ? 'selected' : ''; ?>>SELECT CATEGORY</option>
-                <option value="Curricular" <?php echo $categoryOld === 'Curricular' ? 'selected' : ''; ?>>Curricular</option>
-                <option value="Extra-Curricular" <?php echo $categoryOld === 'Extra-Curricular' ? 'selected' : ''; ?>>Extra-Curricular</option>
-                <option value="Co-Curricular" <?php echo $categoryOld === 'Co-Curricular' ? 'selected' : ''; ?>>Co-Curricular</option>
+                <?php foreach ($allCategories as $cat): ?>
+                    <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $categoryOld === $cat ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">DIFFICULTY</label>
+            <select name="difficulty" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary">
+                <option value="easy" <?php echo ($old['difficulty'] ?? 'medium') === 'easy' ? 'selected' : ''; ?>>EASY (Low Points)</option>
+                <option value="medium" <?php echo ($old['difficulty'] ?? 'medium') === 'medium' ? 'selected' : ''; ?>>MEDIUM (Average Points)</option>
+                <option value="hard" <?php echo ($old['difficulty'] ?? 'medium') === 'hard' ? 'selected' : ''; ?>>HARD (High Points)</option>
             </select>
         </div>
         <div class="flex flex-col gap-2">
@@ -211,6 +223,10 @@
             <input type="number" name="points" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['points'] ?? ''); ?>" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">MAX SLOTS <span class="text-secondary font-normal">(leave blank = unlimited)</span></label>
+            <input type="number" name="max_slots" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['max_slots'] ?? ''); ?>" placeholder="Unlimited">
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">DEADLINE</label>
             <input type="datetime-local" name="deadline" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" value="<?php echo htmlspecialchars($old['deadline'] ?? ''); ?>" required>
         </div>
@@ -247,9 +263,17 @@
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">CATEGORY</label>
             <select name="category" id="edit-category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
-                <option value="Curricular">Curricular</option>
-                <option value="Extra-Curricular">Extra-Curricular</option>
-                <option value="Co-Curricular">Co-Curricular</option>
+                <?php foreach ($allCategories as $cat): ?>
+                    <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">DIFFICULTY</label>
+            <select name="difficulty" id="edit-difficulty" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary">
+                <option value="easy">EASY (Low Points)</option>
+                <option value="medium">MEDIUM (Average Points)</option>
+                <option value="hard">HARD (High Points)</option>
             </select>
         </div>
         <div class="flex flex-col gap-2">
@@ -285,6 +309,10 @@
             <input type="number" name="points" id="edit-points" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">MAX SLOTS <span class="text-secondary font-normal">(leave blank = unlimited)</span></label>
+            <input type="number" name="max_slots" id="edit-max-slots" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" placeholder="Unlimited">
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">DEADLINE</label>
             <input type="datetime-local" name="deadline" id="edit-deadline" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
         </div>
@@ -303,22 +331,18 @@
 </dialog>
 
 <script>
-    var categoryMap = {
-        'Curricular': 'Curricular',
-        'Extra-Curricular': 'Extra-Curricular',
-        'extra cur': 'Extra-Curricular',
-        'Co-Curricular': 'Co-Curricular',
-        'co-curr': 'Co-Curricular'
-    };
+    var categoryMap = {};
 
     function openEditModal(quest) {
         document.getElementById('edit-quest-id').value = quest.quest_id;
         document.getElementById('edit-title').value = quest.title;
         document.getElementById('edit-description').value = quest.description;
-        document.getElementById('edit-category').value = categoryMap[quest.category] || quest.category || 'Curricular';
+        document.getElementById('edit-category').value = quest.category || 'Academic';
+        document.getElementById('edit-difficulty').value = quest.difficulty || 'medium';
         document.getElementById('edit-scope-type').value = quest.scope_type || 'all';
         document.getElementById('edit-proof-type').value = quest.proof_type || 'text';
         document.getElementById('edit-points').value = quest.points;
+        document.getElementById('edit-max-slots').value = quest.max_slots || '';
         
         // Format deadline for datetime-local input (YYYY-MM-DDThh:mm)
         var deadline = new Date(quest.deadline);

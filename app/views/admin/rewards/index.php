@@ -43,6 +43,7 @@
                     <tr>
                         <th class="p-4 uppercase font-black">NAME</th>
                         <th class="p-4 uppercase font-black">REQUIRED POINTS</th>
+                        <th class="p-4 uppercase font-black">STOCK</th>
                         <th class="p-4 uppercase font-black">STATUS</th>
                         <th class="p-4 uppercase font-black text-right">ACTIONS</th>
                     </tr>
@@ -55,6 +56,9 @@
                                 <div class="text-xs text-secondary mt-1"><?php echo htmlspecialchars($reward['description']); ?></div>
                             </td>
                             <td class="p-4 text-primary font-black"><?php echo htmlspecialchars($reward['required_points']); ?></td>
+                            <td class="p-4 font-bold text-xs <?php echo ($reward['stock'] ?? null) !== null && (int)$reward['stock'] <= 0 ? 'text-error' : 'text-zinc-600'; ?>">
+                                <?php echo ($reward['stock'] ?? null) === null ? '∞' : htmlspecialchars($reward['stock']); ?>
+                            </td>
                             <td class="p-4">
                                 <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase <?php echo $reward['status'] === 'available' ? 'bg-[#9aed83] text-[#1e6d12]' : 'bg-zinc-200 text-zinc-600'; ?>">
                                     <?php echo htmlspecialchars($reward['status']); ?>
@@ -99,6 +103,10 @@
             <input type="number" name="required_points" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary" value="<?php echo htmlspecialchars($old['required_points'] ?? ''); ?>" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">STOCK <span class="text-secondary font-normal">(leave blank = unlimited)</span></label>
+            <input type="number" name="stock" min="0" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary" value="<?php echo htmlspecialchars($old['stock'] ?? ''); ?>" placeholder="Unlimited">
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">STATUS</label>
             <select name="status" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary">
                 <option value="available" <?php echo ($old['status'] ?? '') === 'available' ? 'selected' : ''; ?>>AVAILABLE</option>
@@ -133,6 +141,10 @@
             <input type="number" name="required_points" id="edit-required-points" min="1" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary" required>
         </div>
         <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase">STOCK <span class="text-secondary font-normal">(leave blank = unlimited)</span></label>
+            <input type="number" name="stock" id="edit-stock" min="0" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary" placeholder="Unlimited">
+        </div>
+        <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">STATUS</label>
             <select name="status" id="edit-status" class="border-2 border-on-surface p-2 focus:outline-none focus:border-tertiary">
                 <option value="available">AVAILABLE</option>
@@ -152,6 +164,7 @@
         document.getElementById('edit-reward-name').value = reward.reward_name;
         document.getElementById('edit-description').value = reward.description;
         document.getElementById('edit-required-points').value = reward.required_points;
+        document.getElementById('edit-stock').value = reward.stock !== null ? reward.stock : '';
         document.getElementById('edit-status').value = reward.status;
         
         document.querySelector('#edit-reward-modal form').action = "<?php echo BASE_URL; ?>/admin/editReward/" + reward.reward_id;

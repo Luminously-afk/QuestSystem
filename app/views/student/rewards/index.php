@@ -27,6 +27,7 @@
             if ($_GET['error'] === 'not_enough_points') echo "You do not have enough points for that reward.";
             elseif ($_GET['error'] === 'already_requested') echo "You already requested this reward.";
             elseif ($_GET['error'] === 'not_available') echo "This reward is currently unavailable.";
+            elseif ($_GET['error'] === 'out_of_stock') echo "This reward is out of stock.";
             else echo "Request failed. Please try again.";
         ?>
     </div>
@@ -45,6 +46,7 @@
                     <tr>
                         <th class="p-4 uppercase font-black">REWARD</th>
                         <th class="p-4 uppercase font-black">COST (XP)</th>
+                        <th class="p-4 uppercase font-black">STOCK</th>
                         <th class="p-4 uppercase font-black">STATUS</th>
                         <th class="p-4 uppercase font-black text-right">ACTION</th>
                     </tr>
@@ -56,7 +58,8 @@
                             $redemptionStatus = $redemption['status'] ?? null;
                             $canRequest = ($reward['status'] === 'available')
                                 && ($redemptionStatus === null || $redemptionStatus === 'rejected')
-                                && ($user_points >= (int) $reward['required_points']);
+                                && ($user_points >= (int) $reward['required_points'])
+                                && (($reward['stock'] ?? null) === null || (int)($reward['stock'] ?? 0) > 0);
                         ?>
                         <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
                             <td class="p-4">
@@ -67,6 +70,9 @@
                                 <?php endif; ?>
                             </td>
                             <td class="p-4 text-tertiary font-black">-<?php echo htmlspecialchars($reward['required_points']); ?> XP</td>
+                            <td class="p-4 font-bold text-xs <?php echo ($reward['stock'] ?? null) !== null && (int)$reward['stock'] <= 0 ? 'text-error' : 'text-zinc-600'; ?>">
+                                <?php echo ($reward['stock'] ?? null) === null ? '∞' : htmlspecialchars($reward['stock']); ?>
+                            </td>
                             <td class="p-4">
                                 <?php if ($redemptionStatus === 'approved'): ?>
                                     <span class="px-2 py-1 text-[10px] border border-on-surface font-black uppercase bg-[#9aed83] text-[#1e6d12]">APPROVED</span>

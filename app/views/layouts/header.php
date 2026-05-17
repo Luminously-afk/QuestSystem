@@ -191,6 +191,12 @@
             <a class="w-full flex items-center gap-4 p-4 text-on-surface border-2 border-transparent font-mono font-bold uppercase hover:bg-surface-container transition-colors" href="<?php echo BASE_URL; ?>/student/leaderboard">
                 <span class="material-symbols-outlined">leaderboard</span> <span class="text-button-text">Leaderboard</span>
             </a>
+            <a class="w-full flex items-center gap-4 p-4 text-on-surface border-2 border-transparent font-mono font-bold uppercase hover:bg-surface-container transition-colors" href="<?php echo BASE_URL; ?>/student/history">
+                <span class="material-symbols-outlined">receipt_long</span> <span class="text-button-text">Point History</span>
+            </a>
+            <a class="w-full flex items-center gap-4 p-4 text-on-surface border-2 border-transparent font-mono font-bold uppercase hover:bg-surface-container transition-colors" href="<?php echo BASE_URL; ?>/student/profile">
+                <span class="material-symbols-outlined">person</span> <span class="text-button-text">My Profile</span>
+            </a>
         <?php endif; ?>
     </nav>
 </aside>

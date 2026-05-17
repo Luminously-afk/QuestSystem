@@ -15,16 +15,19 @@ class Quest extends Model {
 
     public function create($data) {
         $stmt = $this->db->prepare(
-            'INSERT INTO quests (title, description, category, scope_type, scope_years, proof_type, points, deadline, status, created_by)
-             VALUES (:title, :description, :category, :scope_type, :scope_years, :proof_type, :points, :deadline, :status, :created_by)'
+            'INSERT INTO quests (title, description, category, difficulty, scope_type, scope_years, proof_type, points, max_slots, deadline, status, created_by)
+             VALUES (:title, :description, :category, :difficulty, :scope_type, :scope_years, :proof_type, :points, :max_slots, :deadline, :status, :created_by)'
         );
         $stmt->bindParam(':title', $data['title']);
         $stmt->bindParam(':description', $data['description']);
         $stmt->bindParam(':category', $data['category']);
+        $stmt->bindParam(':difficulty', $data['difficulty']);
         $stmt->bindParam(':scope_type', $data['scope_type']);
         $stmt->bindParam(':scope_years', $data['scope_years']);
         $stmt->bindParam(':proof_type', $data['proof_type']);
         $stmt->bindParam(':points', $data['points'], PDO::PARAM_INT);
+        $maxSlots = $data['max_slots'] ?? null;
+        $stmt->bindValue(':max_slots', $maxSlots, $maxSlots === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $stmt->bindParam(':deadline', $data['deadline']);
         $stmt->bindParam(':status', $data['status']);
         $stmt->bindParam(':created_by', $data['created_by'], PDO::PARAM_INT);
@@ -37,10 +40,12 @@ class Quest extends Model {
              SET title = :title,
                  description = :description,
                  category = :category,
+                 difficulty = :difficulty,
                  scope_type = :scope_type,
                  scope_years = :scope_years,
                  proof_type = :proof_type,
                  points = :points,
+                 max_slots = :max_slots,
                  deadline = :deadline,
                  status = :status
              WHERE quest_id = :quest_id'
@@ -48,10 +53,13 @@ class Quest extends Model {
         $stmt->bindParam(':title', $data['title']);
         $stmt->bindParam(':description', $data['description']);
         $stmt->bindParam(':category', $data['category']);
+        $stmt->bindParam(':difficulty', $data['difficulty']);
         $stmt->bindParam(':scope_type', $data['scope_type']);
         $stmt->bindParam(':scope_years', $data['scope_years']);
         $stmt->bindParam(':proof_type', $data['proof_type']);
         $stmt->bindParam(':points', $data['points'], PDO::PARAM_INT);
+        $maxSlots = $data['max_slots'] ?? null;
+        $stmt->bindValue(':max_slots', $maxSlots, $maxSlots === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $stmt->bindParam(':deadline', $data['deadline']);
         $stmt->bindParam(':status', $data['status']);
         $stmt->bindParam(':quest_id', $questId, PDO::PARAM_INT);
@@ -81,10 +89,11 @@ class Quest extends Model {
     public function getVisibleForStudent($userId, $yearLevel) {
         $yearLevel = (int) $yearLevel;
         $availabilitySql = "CASE WHEN q.status = 'active' AND q.deadline >= NOW() THEN 1 ELSE 0 END AS is_available";
+        $slotsSql = "(SELECT COUNT(*) FROM quest_acceptances WHERE quest_id = q.quest_id) AS acceptance_count";
 
         if ($yearLevel <= 0) {
             $stmt = $this->db->prepare(
-                "SELECT q.*, $availabilitySql
+                "SELECT q.*, $availabilitySql, $slotsSql
                  FROM quests q
                  LEFT JOIN quest_acceptances a
                      ON a.quest_id = q.quest_id AND a.user_id = :user_id
@@ -98,7 +107,7 @@ class Quest extends Model {
         }
 
         $stmt = $this->db->prepare(
-            "SELECT q.*, $availabilitySql
+            "SELECT q.*, $availabilitySql, $slotsSql
              FROM quests q
              LEFT JOIN quest_acceptances a
                  ON a.quest_id = q.quest_id AND a.user_id = :user_id
@@ -182,6 +191,16 @@ class Quest extends Model {
         $stmt->bindParam(':quest_id', $questId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getAcceptanceCount($questId) {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) AS cnt FROM quest_acceptances WHERE quest_id = :quest_id"
+        );
+        $stmt->bindParam(':quest_id', $questId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['cnt'] ?? 0);
     }
 }
 ?>

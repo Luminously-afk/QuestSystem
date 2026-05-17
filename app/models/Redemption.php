@@ -63,7 +63,7 @@ class Redemption extends Model {
             $this->db->beginTransaction();
 
             $stmt = $this->db->prepare(
-                "SELECT r.status, r.user_id, w.required_points, u.total_points
+                "SELECT r.status, r.user_id, r.reward_id, w.required_points, w.stock, u.total_points
                  FROM reward_redemptions r
                  INNER JOIN rewards w ON w.reward_id = r.reward_id
                  INNER JOIN users u ON u.user_id = r.user_id
@@ -85,6 +85,12 @@ class Redemption extends Model {
                 return ['success' => false, 'error' => 'not_enough_points'];
             }
 
+            // Check stock if approving
+            if ($status === 'approved' && $row['stock'] !== null && (int) $row['stock'] <= 0) {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'out_of_stock'];
+            }
+
             $update = $this->db->prepare(
                 "UPDATE reward_redemptions
                  SET status = :status,
@@ -102,6 +108,15 @@ class Redemption extends Model {
             if ($update->rowCount() === 0) {
                 $this->db->rollBack();
                 return ['success' => false, 'error' => 'not_pending'];
+            }
+
+            // Decrement stock if approved and stock is tracked
+            if ($status === 'approved' && $row['stock'] !== null) {
+                $stockUpdate = $this->db->prepare(
+                    "UPDATE rewards SET stock = stock - 1 WHERE reward_id = :reward_id AND stock > 0"
+                );
+                $stockUpdate->bindParam(':reward_id', $row['reward_id'], PDO::PARAM_INT);
+                $stockUpdate->execute();
             }
 
             $this->db->commit();
