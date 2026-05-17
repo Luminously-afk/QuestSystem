@@ -43,7 +43,7 @@ class StudentController extends Controller {
         $student = $this->userModel->getById($_SESSION['user_id']);
         $yearLevel = $student['year_level'] ?? null;
 
-        $availableQuests = $this->questModel->getAvailableForStudent($_SESSION['user_id'], $yearLevel);
+        $availableQuests = $this->questModel->getVisibleForStudent($_SESSION['user_id'], $yearLevel);
         $acceptedQuests = $this->questModel->getAcceptedForStudent($_SESSION['user_id']);
         $this->view('student/quests/index', [
             'available_quests' => $availableQuests,
@@ -112,7 +112,7 @@ class StudentController extends Controller {
 
         $data = [
             'error' => '',
-            'available_quests' => $this->questModel->getAvailableForStudent(
+            'available_quests' => $this->questModel->getVisibleForStudent(
                 $_SESSION['user_id'],
                 ($this->userModel->getById($_SESSION['user_id'])['year_level'] ?? null)
             ),

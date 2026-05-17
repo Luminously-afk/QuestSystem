@@ -55,6 +55,10 @@
 <section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
     <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
         <h2 class="font-h2 text-on-surface uppercase font-black">ALL STUDENTS</h2>
+        <div class="flex items-center gap-2">
+            <label class="text-[10px] uppercase font-black text-on-surface">Search</label>
+            <input id="student-search" type="text" placeholder="Name, ID, email" class="border-2 border-on-surface p-2 text-xs uppercase bg-white focus:outline-none focus:border-primary">
+        </div>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($students)): ?>
@@ -73,9 +77,17 @@
                         <th class="p-4 uppercase font-black text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="students-table-body">
                     <?php foreach ($students as $student): ?>
-                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
+                        <?php
+                            $studentSearch = strtolower(
+                                $student['full_name'] . ' ' .
+                                ($student['student_id'] ?? '') . ' ' .
+                                ($student['email'] ?? '') . ' ' .
+                                ($student['year_level'] ?? '')
+                            );
+                        ?>
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low" data-student-row data-search="<?php echo htmlspecialchars($studentSearch); ?>">
                             <td class="p-4 font-bold text-on-surface uppercase"><?php echo htmlspecialchars($student['full_name']); ?></td>
                             <td class="p-4 uppercase font-bold text-secondary"><?php echo htmlspecialchars($student['student_id'] ?? '-'); ?></td>
                             <td class="p-4 uppercase font-bold text-secondary"><?php echo htmlspecialchars($student['year_level'] ?? '-'); ?></td>
@@ -98,6 +110,13 @@
                                 <button onclick="openEditStudentModal(<?php echo htmlspecialchars(json_encode($student)); ?>)" class="text-primary hover:text-on-surface mx-2" title="Edit Student">
                                     <span class="material-symbols-outlined">edit</span>
                                 </button>
+                                <?php
+                                    $passwordAction = (int) $student['must_change_password'] === 1 ? 'reroll' : 'reset';
+                                    $passwordTitle = $passwordAction === 'reroll' ? 'Reroll Temporary Password' : 'Reset Password';
+                                ?>
+                                <button type="button" onclick="openPasswordResetModal(<?php echo htmlspecialchars(json_encode($student)); ?>, '<?php echo htmlspecialchars($passwordAction); ?>')" class="text-[#b45309] hover:text-on-surface mx-2" title="<?php echo htmlspecialchars($passwordTitle); ?>">
+                                    <span class="material-symbols-outlined">lock_reset</span>
+                                </button>
                                 <form method="post" action="<?php echo BASE_URL; ?>/admin/toggleStudentStatus" class="inline-block" onsubmit="return confirm('Update this student status?');">
                                     <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($student['user_id']); ?>">
                                     <input type="hidden" name="is_active" value="<?php echo (int) $student['is_active'] === 1 ? 0 : 1; ?>">
@@ -108,6 +127,9 @@
                             </td>
                         </tr>
                     <?php endforeach; ?>
+                    <tr id="students-empty-row" class="hidden">
+                        <td colspan="8" class="p-6 font-mono text-sm uppercase">No matching students.</td>
+                    </tr>
                 </tbody>
             </table>
         <?php endif; ?>
@@ -224,6 +246,24 @@
     </form>
 </dialog>
 
+<!-- Password Reset Dialog -->
+<dialog id="password-reset-modal" class="bg-surface-container-lowest border-2 border-on-surface p-0 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-lg w-full backdrop:bg-black/60">
+    <div class="bg-[#b45309] border-b-4 border-on-surface p-4 flex justify-between items-center">
+        <h2 class="font-h2 text-white uppercase" id="password-reset-title">RESET PASSWORD</h2>
+        <button onclick="closeModal('password-reset-modal')" class="text-white hover:text-zinc-200"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <form method="post" action="<?php echo BASE_URL; ?>/admin/resetStudentPassword" class="p-6 flex flex-col gap-4 font-mono">
+        <input type="hidden" name="user_id" id="password-reset-user-id">
+        <input type="hidden" name="mode" id="password-reset-mode">
+        <p class="text-xs uppercase font-bold" id="password-reset-message">Reset this student password and generate a temporary password?</p>
+        <div class="border-2 border-on-surface bg-surface-container p-3 text-xs uppercase font-bold" id="password-reset-student"></div>
+        <div class="flex gap-4 mt-2">
+            <button type="button" onclick="closeModal('password-reset-modal')" class="flex-1 bg-zinc-200 border-2 border-on-surface p-3 font-button-text hover:bg-zinc-300">CANCEL</button>
+            <button type="submit" class="flex-1 bg-[#b45309] text-white border-2 border-on-surface p-3 font-button-text hover:bg-[#9a4208]">CONFIRM</button>
+        </div>
+    </form>
+</dialog>
+
 <script>
     function openEditStudentModal(student) {
         document.getElementById('edit-student-id').value = student.user_id;
@@ -243,6 +283,42 @@
         openModal('add-points-modal');
     }
 
+    function openPasswordResetModal(student, mode) {
+        var isReroll = mode === 'reroll';
+        document.getElementById('password-reset-user-id').value = student.user_id;
+        document.getElementById('password-reset-mode').value = mode;
+        document.getElementById('password-reset-title').textContent = isReroll ? 'REROLL TEMP PASSWORD' : 'RESET PASSWORD';
+        document.getElementById('password-reset-message').textContent = isReroll
+            ? 'Generate a new temporary password? This replaces the previous one.'
+            : 'Reset this student password and generate a temporary password?';
+        document.getElementById('password-reset-student').textContent = student.full_name + " (" + (student.student_id || "N/A") + ")";
+        openModal('password-reset-modal');
+    }
+
+    function applyStudentFilter() {
+        var searchInput = document.getElementById('student-search');
+        if (!searchInput) {
+            return;
+        }
+        var query = searchInput.value.trim().toLowerCase();
+        var rows = document.querySelectorAll('#students-table-body tr[data-student-row]');
+        var visibleCount = 0;
+
+        rows.forEach((row) => {
+            var haystack = (row.dataset.search || '').toLowerCase();
+            var shouldShow = query === '' || haystack.includes(query);
+            row.classList.toggle('hidden', !shouldShow);
+            if (shouldShow) {
+                visibleCount += 1;
+            }
+        });
+
+        var emptyRow = document.getElementById('students-empty-row');
+        if (emptyRow) {
+            emptyRow.classList.toggle('hidden', visibleCount !== 0);
+        }
+    }
+
     <?php if (!empty($open_create_modal)): ?>
         window.addEventListener('DOMContentLoaded', () => { openModal('create-student-modal'); });
     <?php endif; ?>
@@ -256,6 +332,14 @@
             <?php endif; ?>
         });
     <?php endif; ?>
+
+    window.addEventListener('DOMContentLoaded', () => {
+        var searchInput = document.getElementById('student-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', applyStudentFilter);
+        }
+        applyStudentFilter();
+    });
 </script>
 
 <?php require_once '../app/views/layouts/footer.php'; ?>

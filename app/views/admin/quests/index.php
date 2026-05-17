@@ -13,6 +13,15 @@
         'multi_image' => 'Multiple Images',
         'none' => 'No Proof'
     ];
+    $categoryLabels = [
+        'Curricular' => 'Curricular',
+        'Extra-Curricular' => 'Extra-Curricular',
+        'extra cur' => 'Extra-Curricular',
+        'Co-Curricular' => 'Co-Curricular',
+        'co-curr' => 'Co-Curricular'
+    ];
+    $categoryOld = $old['category'] ?? '';
+    $categoryOld = $categoryLabels[$categoryOld] ?? $categoryOld;
 ?>
 
 <!-- Breadcrumbs -->
@@ -48,6 +57,29 @@
 <section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow">
     <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
         <h2 class="font-h2 text-on-surface uppercase font-black">ALL QUESTS</h2>
+        <div class="flex flex-wrap gap-3 items-center">
+            <div class="flex items-center gap-2">
+                <label class="text-[10px] uppercase font-black text-on-surface">Search</label>
+                <input id="quest-search" type="text" placeholder="Title or category" class="border-2 border-on-surface p-2 text-xs uppercase bg-white focus:outline-none focus:border-primary">
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-[10px] uppercase font-black text-on-surface">Status</label>
+                <select id="quest-status-filter" class="border-2 border-on-surface p-2 text-xs uppercase bg-white focus:outline-none focus:border-primary">
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-[10px] uppercase font-black text-on-surface">Category</label>
+                <select id="quest-category-filter" class="border-2 border-on-surface p-2 text-xs uppercase bg-white focus:outline-none focus:border-primary">
+                    <option value="all">All</option>
+                    <option value="Curricular">Curricular</option>
+                    <option value="Extra-Curricular">Extra-Curricular</option>
+                    <option value="Co-Curricular">Co-Curricular</option>
+                </select>
+            </div>
+        </div>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($quests)): ?>
@@ -66,23 +98,26 @@
                         <th class="p-4 uppercase font-black text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="quest-table-body">
                     <?php foreach ($quests as $quest): ?>
-                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
+                        <?php
+                            $scopeText = $scopeLabels[$quest['scope_type']] ?? 'All Years';
+                            if ($quest['scope_type'] !== 'all' && !empty($quest['scope_years'])) {
+                                $scopeText .= ' (' . $quest['scope_years'] . ')';
+                            }
+                            $proofText = $proofLabels[$quest['proof_type']] ?? 'Text';
+                            $categoryText = $categoryLabels[$quest['category']] ?? $quest['category'];
+                            $searchText = strtolower($quest['title'] . ' ' . $categoryText . ' ' . $scopeText . ' ' . $proofText . ' ' . ($quest['status'] ?? ''));
+                        ?>
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low" data-quest-row data-status="<?php echo htmlspecialchars($quest['status']); ?>" data-category="<?php echo htmlspecialchars($categoryText); ?>" data-search="<?php echo htmlspecialchars($searchText); ?>">
                             <td class="p-4 font-bold text-on-surface"><?php echo htmlspecialchars($quest['title']); ?></td>
-                            <td class="p-4 uppercase"><?php echo htmlspecialchars($quest['category']); ?></td>
+                            <td class="p-4 uppercase"><?php echo htmlspecialchars($categoryText); ?></td>
                             <td class="p-4 text-primary font-black"><?php echo htmlspecialchars($quest['points']); ?></td>
                             <td class="p-4 text-xs uppercase font-bold text-zinc-600">
-                                <?php
-                                    $scopeText = $scopeLabels[$quest['scope_type']] ?? 'All Years';
-                                    if ($quest['scope_type'] !== 'all' && !empty($quest['scope_years'])) {
-                                        $scopeText .= ' (' . $quest['scope_years'] . ')';
-                                    }
-                                    echo htmlspecialchars($scopeText);
-                                ?>
+                                <?php echo htmlspecialchars($scopeText); ?>
                             </td>
                             <td class="p-4 text-xs uppercase font-bold text-zinc-600">
-                                <?php echo htmlspecialchars($proofLabels[$quest['proof_type']] ?? 'Text'); ?>
+                                <?php echo htmlspecialchars($proofText); ?>
                             </td>
                             <td class="p-4 uppercase"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($quest['deadline']))); ?></td>
                             <td class="p-4">
@@ -103,6 +138,9 @@
                             </td>
                         </tr>
                     <?php endforeach; ?>
+                    <tr id="quest-empty-row" class="hidden">
+                        <td colspan="8" class="p-6 font-mono text-sm uppercase">No matching quests.</td>
+                    </tr>
                 </tbody>
             </table>
         <?php endif; ?>
@@ -127,10 +165,10 @@
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">CATEGORY</label>
             <select name="category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
-                <option value="" disabled <?php echo empty($old['category'] ?? '') ? 'selected' : ''; ?>>SELECT CATEGORY</option>
-                <option value="Curricular" <?php echo ($old['category'] ?? '') === 'Curricular' ? 'selected' : ''; ?>>CURRICULAR</option>
-                <option value="extra cur" <?php echo ($old['category'] ?? '') === 'Extra-Curricular' ? 'selected' : ''; ?>>EXTRA CUR</option>
-                <option value="co-curr" <?php echo ($old['category'] ?? '') === 'Co-Curricular' ? 'selected' : ''; ?>>CO-CURR</option>
+                <option value="" disabled <?php echo empty($categoryOld) ? 'selected' : ''; ?>>SELECT CATEGORY</option>
+                <option value="Curricular" <?php echo $categoryOld === 'Curricular' ? 'selected' : ''; ?>>Curricular</option>
+                <option value="Extra-Curricular" <?php echo $categoryOld === 'Extra-Curricular' ? 'selected' : ''; ?>>Extra-Curricular</option>
+                <option value="Co-Curricular" <?php echo $categoryOld === 'Co-Curricular' ? 'selected' : ''; ?>>Co-Curricular</option>
             </select>
         </div>
         <div class="flex flex-col gap-2">
@@ -206,7 +244,11 @@
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">CATEGORY</label>
-            <input type="text" name="category" id="edit-category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
+            <select name="category" id="edit-category" class="border-2 border-on-surface p-2 focus:outline-none focus:border-primary" required>
+                <option value="Curricular">Curricular</option>
+                <option value="Extra-Curricular">Extra-Curricular</option>
+                <option value="Co-Curricular">Co-Curricular</option>
+            </select>
         </div>
         <div class="flex flex-col gap-2">
             <label class="text-xs font-bold uppercase">SCOPE TYPE</label>
@@ -258,11 +300,19 @@
 </dialog>
 
 <script>
+    var categoryMap = {
+        'Curricular': 'Curricular',
+        'Extra-Curricular': 'Extra-Curricular',
+        'extra cur': 'Extra-Curricular',
+        'Co-Curricular': 'Co-Curricular',
+        'co-curr': 'Co-Curricular'
+    };
+
     function openEditModal(quest) {
         document.getElementById('edit-quest-id').value = quest.quest_id;
         document.getElementById('edit-title').value = quest.title;
         document.getElementById('edit-description').value = quest.description;
-        document.getElementById('edit-category').value = quest.category;
+        document.getElementById('edit-category').value = categoryMap[quest.category] || quest.category || 'Curricular';
         document.getElementById('edit-scope-type').value = quest.scope_type || 'all';
         document.getElementById('edit-proof-type').value = quest.proof_type || 'text';
         document.getElementById('edit-points').value = quest.points;
@@ -348,7 +398,59 @@
     window.addEventListener('DOMContentLoaded', () => {
         bindScopeHandlers('create-scope-type', 'create-scope-years');
         bindScopeHandlers('edit-scope-type', 'edit-scope-years');
+
+        var questSearch = document.getElementById('quest-search');
+        var questStatus = document.getElementById('quest-status-filter');
+        var questCategory = document.getElementById('quest-category-filter');
+
+        if (questSearch) {
+            questSearch.addEventListener('input', applyQuestFilters);
+        }
+        if (questStatus) {
+            questStatus.addEventListener('change', applyQuestFilters);
+        }
+        if (questCategory) {
+            questCategory.addEventListener('change', applyQuestFilters);
+        }
+
+        applyQuestFilters();
     });
+
+    function applyQuestFilters() {
+        var questSearch = document.getElementById('quest-search');
+        var questStatus = document.getElementById('quest-status-filter');
+        var questCategory = document.getElementById('quest-category-filter');
+        if (!questSearch || !questStatus || !questCategory) {
+            return;
+        }
+
+        var query = questSearch.value.trim().toLowerCase();
+        var statusFilter = questStatus.value;
+        var categoryFilter = questCategory.value;
+        var rows = document.querySelectorAll('#quest-table-body tr[data-quest-row]');
+        var visibleCount = 0;
+
+        rows.forEach((row) => {
+            var haystack = (row.dataset.search || '').toLowerCase();
+            var rowStatus = row.dataset.status || '';
+            var rowCategory = row.dataset.category || '';
+
+            var matchesSearch = query === '' || haystack.includes(query);
+            var matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+            var matchesCategory = categoryFilter === 'all' || rowCategory === categoryFilter;
+
+            var shouldShow = matchesSearch && matchesStatus && matchesCategory;
+            row.classList.toggle('hidden', !shouldShow);
+            if (shouldShow) {
+                visibleCount += 1;
+            }
+        });
+
+        var emptyRow = document.getElementById('quest-empty-row');
+        if (emptyRow) {
+            emptyRow.classList.toggle('hidden', visibleCount !== 0);
+        }
+    }
 </script>
 
 <?php require_once '../app/views/layouts/footer.php'; ?>

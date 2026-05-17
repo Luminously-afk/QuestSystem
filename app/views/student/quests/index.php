@@ -29,11 +29,11 @@
 
 <section class="bg-surface-container-lowest border-2 border-on-surface pixel-shadow mb-10">
     <div class="p-4 border-b-4 border-on-surface flex flex-wrap gap-4 justify-between items-center bg-surface-container-low">
-        <h2 class="font-h2 text-on-surface uppercase font-black">AVAILABLE QUESTS</h2>
+        <h2 class="font-h2 text-on-surface uppercase font-black">ALL QUESTS</h2>
     </div>
     <div class="overflow-x-auto">
         <?php if (empty($available_quests)): ?>
-            <div class="p-6 font-mono text-sm uppercase">No available quests at the moment.</div>
+            <div class="p-6 font-mono text-sm uppercase">No quests found at the moment.</div>
         <?php else: ?>
             <table class="w-full text-left font-mono text-sm">
                 <thead class="bg-surface-container border-b-4 border-on-surface">
@@ -48,7 +48,17 @@
                 </thead>
                 <tbody>
                     <?php foreach ($available_quests as $quest): ?>
-                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low">
+                        <?php
+                            $isAvailable = isset($quest['is_available']) ? (int) $quest['is_available'] === 1 : true;
+                            if (!isset($quest['is_available'])) {
+                                $isAvailable = ($quest['status'] ?? 'active') === 'active'
+                                    && strtotime($quest['deadline']) >= time();
+                            }
+                            $isActive = ($quest['status'] ?? 'active') === 'active';
+                            $isExpired = !$isActive ? false : (strtotime($quest['deadline']) < time());
+                            $availabilityLabel = $isActive ? ($isExpired ? 'EXPIRED' : 'UNAVAILABLE') : 'INACTIVE';
+                        ?>
+                        <tr class="border-b-2 border-outline-variant hover:bg-surface-container-low <?php echo $isAvailable ? '' : 'opacity-60'; ?>">
                             <td class="p-4">
                                 <div class="font-bold text-on-surface uppercase"><?php echo htmlspecialchars($quest['title']); ?></div>
                                 <div class="text-xs text-secondary mt-1"><?php echo htmlspecialchars($quest['description']); ?></div>
@@ -60,9 +70,13 @@
                             <td class="p-4 text-primary font-black">+<?php echo htmlspecialchars($quest['points']); ?> XP</td>
                             <td class="p-4 uppercase text-xs font-bold text-error"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($quest['deadline']))); ?></td>
                             <td class="p-4 text-right">
-                                <form method="post" action="<?php echo BASE_URL; ?>/student/acceptQuest/<?php echo htmlspecialchars($quest['quest_id']); ?>">
-                                    <button type="submit" class="bg-primary text-white border-2 border-on-surface px-3 py-1 font-button-text hover:bg-on-primary-fixed-variant uppercase">ACCEPT</button>
-                                </form>
+                                <?php if ($isAvailable): ?>
+                                    <form method="post" action="<?php echo BASE_URL; ?>/student/acceptQuest/<?php echo htmlspecialchars($quest['quest_id']); ?>">
+                                        <button type="submit" class="bg-primary text-white border-2 border-on-surface px-3 py-1 font-button-text hover:bg-on-primary-fixed-variant uppercase">ACCEPT</button>
+                                    </form>
+                                <?php else: ?>
+                                    <button type="button" class="bg-zinc-200 text-zinc-500 border-2 border-on-surface px-3 py-1 font-button-text uppercase cursor-not-allowed" title="<?php echo htmlspecialchars($availabilityLabel); ?>" disabled>UNAVAILABLE</button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

@@ -106,6 +106,19 @@ class User extends Model {
         return $stmt->execute();
     }
 
+    public function setTemporaryPassword($userId, $passwordHash) {
+        $stmt = $this->db->prepare(
+            "UPDATE users
+             SET password = :password,
+                 must_change_password = 1,
+                 password_changed_at = NULL
+             WHERE user_id = :user_id"
+        );
+        $stmt->bindParam(':password', $passwordHash);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
     public function getStudents() {
         $stmt = $this->db->prepare(
             "SELECT user_id, full_name, student_id, year_level, email, total_points, must_change_password, is_active, created_at

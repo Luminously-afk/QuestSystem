@@ -78,6 +78,43 @@ class Quest extends Model {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getVisibleForStudent($userId, $yearLevel) {
+        $yearLevel = (int) $yearLevel;
+        $availabilitySql = "CASE WHEN q.status = 'active' AND q.deadline >= NOW() THEN 1 ELSE 0 END AS is_available";
+
+        if ($yearLevel <= 0) {
+            $stmt = $this->db->prepare(
+                "SELECT q.*, $availabilitySql
+                 FROM quests q
+                 LEFT JOIN quest_acceptances a
+                     ON a.quest_id = q.quest_id AND a.user_id = :user_id
+                 WHERE q.scope_type = 'all'
+                     AND a.acceptance_id IS NULL
+                 ORDER BY q.deadline ASC"
+            );
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT q.*, $availabilitySql
+             FROM quests q
+             LEFT JOIN quest_acceptances a
+                 ON a.quest_id = q.quest_id AND a.user_id = :user_id
+             WHERE (
+                        q.scope_type = 'all'
+                        OR (q.scope_type IN ('year', 'multi') AND FIND_IN_SET(:year_level, q.scope_years))
+             )
+                 AND a.acceptance_id IS NULL
+             ORDER BY q.deadline ASC"
+        );
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':year_level', $yearLevel, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
         public function getAvailableForStudent($userId, $yearLevel) {
                 $yearLevel = (int)$yearLevel;
                 if ($yearLevel <= 0) {

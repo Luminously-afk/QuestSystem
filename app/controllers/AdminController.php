@@ -665,7 +665,9 @@ class AdminController extends Controller {
         }
 
         $data['students'] = $this->userModel->getStudents();
-        $data['open_create_modal'] = true;
+        if ($data['error'] !== '') {
+            $data['open_create_modal'] = true;
+        }
         $this->view('admin/students/index', $data);
     }
 
@@ -739,6 +741,60 @@ class AdminController extends Controller {
             $data['error'] = 'Failed to update student account. Please try again.';
         }
 
+        $this->view('admin/students/index', $data);
+    }
+
+    public function resetStudentPassword() {
+        $this->requireAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/students');
+        }
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        $mode = ($_POST['mode'] ?? 'reset') === 'reroll' ? 'reroll' : 'reset';
+
+        $data = [
+            'error' => '',
+            'success' => '',
+            'generated_password' => '',
+            'old' => []
+        ];
+
+        if ($userId <= 0) {
+            $data['error'] = 'Invalid student selection.';
+        } else {
+            $student = $this->userModel->getById($userId);
+            if (!$student || ($student['role'] ?? '') !== 'student') {
+                $data['error'] = 'Student not found.';
+            } elseif ($mode === 'reroll' && (int) ($student['must_change_password'] ?? 0) !== 1) {
+                $data['error'] = 'Student already changed their password. Use reset instead.';
+            } else {
+                $plainPassword = $this->generateSimplePassword();
+                $passwordHash = password_hash($plainPassword, PASSWORD_DEFAULT);
+                $updated = $this->userModel->setTemporaryPassword($userId, $passwordHash);
+
+                if ($updated) {
+                    $studentLabel = $student['full_name'] . ' (' . ($student['student_id'] ?: 'N/A') . ')';
+                    $action = $mode === 'reroll' ? 'student_password_reroll' : 'student_password_reset';
+                    $actionText = $mode === 'reroll' ? 'Rerolled temporary password for ' : 'Reset password for ';
+                    $this->auditLogModel->create(
+                        $_SESSION['user_id'],
+                        $action,
+                        $actionText . $studentLabel
+                    );
+
+                    $data['success'] = $mode === 'reroll'
+                        ? 'Temporary password rerolled. Share the new password below with the student.'
+                        : 'Password reset. Share the temporary password below with the student.';
+                    $data['generated_password'] = $plainPassword;
+                } else {
+                    $data['error'] = 'Failed to reset password. Please try again.';
+                }
+            }
+        }
+
+        $data['students'] = $this->userModel->getStudents();
         $this->view('admin/students/index', $data);
     }
 
